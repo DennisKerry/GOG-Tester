@@ -1,0 +1,110 @@
+﻿package com.gog.tests;
+
+import com.gog.base.BaseTest;
+import com.gog.utils.TestUtils;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.testng.Assert;
+import org.testng.annotations.Test;
+
+/**
+ * SearchTest â€“ verifies the GOG.com game search functionality.
+ *
+ * GOG exposes search both through a header overlay/autocomplete and through
+ * the catalog page URL parameter: /games?search=TERM
+ *
+ * Automation constraints noted:
+ * - Search results are delivered asynchronously via XHR; a settle pause is
+ * applied after navigation before asserting result tiles.
+ * - The search autocomplete overlay may not appear in all GOG frontend
+ * versions; the catalog page URL approach is used as the primary test path.
+ * - "The Witcher 3" is used as the search term because it is a flagship GOG
+ * title guaranteed to return results.
+ */
+public class SearchTest extends BaseTest {
+
+    private static final String SEARCH_URL = BASE_URL + "/games?search=witcher";
+
+    // ------------------------------------------------------------------
+    // Test methods (6 total, requirement is >= 5)
+    // ------------------------------------------------------------------
+
+    @Test(description = "Verify a search icon or input is present in the GOG header")
+    public void testSearchIconPresent() {
+        driver.get(BASE_URL + "/");
+        boolean searchPresent = TestUtils.isElementPresent(driver,
+                By.cssSelector("[class*='search'] button, [class*='search'] a, "
+                        + "input[type='search'], [data-qa*='search']"))
+                || TestUtils.isElementPresent(driver,
+                        By.xpath("//*[@aria-label='Search' or @title='Search']"
+                                + " | //*[contains(@class,'search') and (self::button or self::a)]"));
+        Assert.assertTrue(searchPresent,
+                "A search icon, button, or input must be present in the GOG header");
+    }
+
+    @Test(description = "Verify the search results page loads when a query is provided")
+    public void testSearchResultsPageLoads() {
+        driver.get(SEARCH_URL);
+        TestUtils.waitForPageLoad(driver);
+        Assert.assertTrue(
+                driver.getCurrentUrl().contains("gog.com"),
+                "Search results must be served on gog.com, actual URL: " + driver.getCurrentUrl());
+    }
+
+    @Test(description = "Verify searching 'witcher' returns at least one game tile")
+    public void testSearchReturnsResults() {
+        driver.get(SEARCH_URL);
+        TestUtils.pause(3000); // allow XHR results to render
+        boolean tilesPresent = TestUtils.isElementPresent(driver,
+                By.cssSelector("[class*='product-tile'], [class*='product_tile'], "
+                        + "[class*='product-card'], [class*='productcell']"));
+        Assert.assertTrue(tilesPresent,
+                "At least one game result tile must appear for the 'witcher' search");
+    }
+
+    @Test(description = "Verify search result tiles contain a visible game title")
+    public void testSearchResultsHaveTitles() {
+        driver.get(SEARCH_URL);
+        TestUtils.pause(3000);
+        WebElement titleEl = wait.until(
+                ExpectedConditions.presenceOfElementLocated(
+                        By.xpath("//*[contains(@class,'product-tile__title')"
+                                + " or contains(@class,'product_tile__title')"
+                                + " or (contains(@class,'title') and "
+                                + "ancestor::*[contains(@class,'product')])]")));
+        Assert.assertFalse(titleEl.getText().trim().isEmpty(),
+                "Search result tiles must display a non-empty game title");
+    }
+
+    @Test(description = "Verify search result tiles contain cover images")
+    public void testSearchResultsHaveImages() {
+        driver.get(SEARCH_URL);
+        TestUtils.pause(3000);
+        boolean imagesPresent = TestUtils.isElementPresent(driver,
+                By.cssSelector("[class*='product-tile'] img, [class*='product_tile'] img, "
+                        + "[class*='product-card'] img, [class*='productcell'] img"))
+                || TestUtils.isElementPresent(driver,
+                        By.xpath("//*[contains(@class,'product') and @href]//img"));
+        Assert.assertTrue(imagesPresent,
+                "Search result tiles must contain game cover images");
+    }
+
+    @Test(description = "Verify sort or filter options are available on the search results page")
+    public void testSearchPageHasFilters() {
+        driver.get(SEARCH_URL);
+        TestUtils.waitForPageLoad(driver);
+        boolean filtersPresent = TestUtils.isElementPresent(driver,
+                By.xpath("//*[contains(translate(text(),'ABCDEFGHIJKLMNOPQRSTUVWXYZ',"
+                        + "'abcdefghijklmnopqrstuvwxyz'),'sort')"
+                        + " or contains(translate(text(),'ABCDEFGHIJKLMNOPQRSTUVWXYZ',"
+                        + "'abcdefghijklmnopqrstuvwxyz'),'filter')"
+                        + " or contains(translate(text(),'ABCDEFGHIJKLMNOPQRSTUVWXYZ',"
+                        + "'abcdefghijklmnopqrstuvwxyz'),'genre')"
+                        + " or contains(translate(text(),'ABCDEFGHIJKLMNOPQRSTUVWXYZ',"
+                        + "'abcdefghijklmnopqrstuvwxyz'),'price')]"
+                        + "[not(ancestor::footer)]"));
+        Assert.assertTrue(filtersPresent,
+                "Sort or filter options must be visible on the search results page");
+    }
+}

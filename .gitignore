@@ -1,0 +1,16 @@
+# Maven build output
+target/
+
+# Test credentials – NEVER commit these
+src/test/resources/config.properties
+
+# IDE files
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+
+# OS files
+.DS_Store
+Thumbs.db

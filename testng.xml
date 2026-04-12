@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="GOG Selenium Test Suite" verbose="1" parallel="none">
+
+    <!-- ============================================================
+         CEN 4072 – Software Testing  |  Group 15
+         GOG.com Automated Test Suite
+         Members: Robert Benstine, Dennis Kerry, Myles Vinal
+         System Under Test: https://www.gog.com
+         ============================================================ -->
+
+    <test name="Home Page Tests">
+        <classes>
+            <class name="com.gog.tests.HomePageTest"/>
+        </classes>
+    </test>
+
+    <test name="Login Page Tests">
+        <classes>
+            <class name="com.gog.tests.LoginPageTest"/>
+        </classes>
+    </test>
+
+    <test name="Signup Page Tests">
+        <classes>
+            <class name="com.gog.tests.SignupPageTest"/>
+        </classes>
+    </test>
+
+    <test name="Search Tests">
+        <classes>
+            <class name="com.gog.tests.SearchTest"/>
+        </classes>
+    </test>
+
+    <test name="Navigation Tests">
+        <classes>
+            <class name="com.gog.tests.NavigationTest"/>
+        </classes>
+    </test>
+
+    <test name="Game Page Tests">
+        <classes>
+            <class name="com.gog.tests.GamePageTest"/>
+        </classes>
+    </test>
+
+    <test name="Genre Browse Tests">
+        <classes>
+            <class name="com.gog.tests.GenreBrowseTest"/>
+        </classes>
+    </test>
+
+    <test name="Cart Page Tests">
+        <classes>
+            <class name="com.gog.tests.CartPageTest"/>
+        </classes>
+    </test>
+
+</suite>
