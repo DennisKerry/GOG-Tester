@@ -1,4 +1,4 @@
-﻿package com.gog.base;
+package com.gog.base;
 
 import com.gog.utils.TestUtils;
 import org.testng.annotations.BeforeClass;

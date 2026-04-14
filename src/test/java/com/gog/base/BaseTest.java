@@ -1,4 +1,4 @@
-﻿package com.gog.base;
+package com.gog.base;
 
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.openqa.selenium.WebDriver;

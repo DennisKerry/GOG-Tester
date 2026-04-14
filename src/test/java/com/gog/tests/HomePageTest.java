@@ -1,4 +1,4 @@
-﻿package com.gog.tests;
+package com.gog.tests;
 
 import com.gog.base.BaseTest;
 import com.gog.utils.TestUtils;

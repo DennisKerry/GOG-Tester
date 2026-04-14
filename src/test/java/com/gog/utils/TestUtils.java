@@ -1,4 +1,4 @@
-﻿package com.gog.utils;
+package com.gog.utils;
 
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
