@@ -128,10 +128,8 @@ public class CartPageTest extends BaseTest {
     @Test(description = "Verify the cart/checkout page is served over HTTPS")
     public void testCartPageIsHttps() {
         Assert.assertTrue(
-            driver.getCurrentUrl().startsWith("https://"),
-            "Cart/checkout page must be served over HTTPS, actual URL: " + driver.getCurrentUrl()
-        );
+                driver.getCurrentUrl().startsWith("https://"),
+                "Cart/checkout page must be served over HTTPS, actual URL: " + driver.getCurrentUrl());
     }
 
 }
-

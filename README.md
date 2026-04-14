@@ -1,8 +1,9 @@
 # GOG.com Selenium Testing Suite
+
 ## CEN 4072 – Software Testing | Spring 2026 | Group 15
 
 **Team Members:** Robert Benstine · Dennis Kerry · Myles Vinal  
-**Instructor:** *(Course Instructor)*  
+**Instructor:** _(Course Instructor)_  
 **System Under Test:** [GOG.com](https://www.gog.com) (web)
 
 ---
@@ -19,16 +20,16 @@ most features, making it well-suited for automated browser testing.
 
 The suite contains **8 test classes** (≥ 5 test methods each) covering:
 
-| # | Test Class | Needs Login | Methods |
-|---|-----------|-------------|---------|
-| 1 | `HomePageTest` | No | 7 |
-| 2 | `LoginPageTest` | No | 7 |
-| 3 | `SignupPageTest` | No | 7 |
-| 4 | `SearchTest` | No | 6 |
-| 5 | `NavigationTest` | No | 6 |
-| 6 | `GamePageTest` | No | 7 |
-| 7 | `GenreBrowseTest` | No | 6 |
-| 8 | `CartPageTest` | No | 7 |
+| #   | Test Class        | Needs Login | Methods |
+| --- | ----------------- | ----------- | ------- |
+| 1   | `HomePageTest`    | No          | 7       |
+| 2   | `LoginPageTest`   | No          | 7       |
+| 3   | `SignupPageTest`  | No          | 7       |
+| 4   | `SearchTest`      | No          | 6       |
+| 5   | `NavigationTest`  | No          | 6       |
+| 6   | `GamePageTest`    | No          | 7       |
+| 7   | `GenreBrowseTest` | No          | 6       |
+| 8   | `CartPageTest`    | No          | 7       |
 
 All 8 classes are wired into **`testng.xml`** (the integration runner).
 
@@ -68,11 +69,11 @@ GOG-Tester/
 
 ## Prerequisites
 
-| Tool | Version |
-|------|---------|
-| Java JDK | 17 or later |
-| Maven | 3.8+ |
-| Google Chrome | Latest stable |
+| Tool            | Version                              |
+| --------------- | ------------------------------------ |
+| Java JDK        | 17 or later                          |
+| Maven           | 3.8+                                 |
+| Google Chrome   | Latest stable                        |
 | Internet access | Required (tests run against gog.com) |
 
 ChromeDriver is downloaded automatically by **WebDriverManager** – no manual
@@ -83,12 +84,14 @@ driver installation needed.
 ## Setup Instructions
 
 ### 1 – Clone the repository
+
 ```bash
 git clone https://github.com/DennisKerry/GOG-Tester.git
 cd GOG-Tester
 ```
 
 ### 2 – (Optional) Add GOG credentials
+
 Only needed if running tests that extend `AuthenticatedTest`. Currently all
 8 classes test public pages and do not require login.
 
@@ -103,13 +106,17 @@ gog.password=your_gog_account_password
 > real credentials to a public repository.
 
 ### 3 – Set JAVA_HOME (Windows)
+
 Ensure Maven uses Java 17+. If you have multiple JDKs installed:
+
 ```powershell
 $env:JAVA_HOME = "C:\Program Files\Java\jdk-25.0.2"   # adjust path as needed
 ```
+
 Or set it permanently via System Properties → Environment Variables.
 
 ### 4 – Run the full suite
+
 ```bash
 mvn test
 ```
@@ -118,6 +125,7 @@ Maven reads `testng.xml` and executes all 8 test classes sequentially.
 Chrome windows will open and close automatically for each class.
 
 ### 5 – Run a single test class
+
 ```bash
 mvn test -Dtest=HomePageTest
 ```
@@ -129,15 +137,15 @@ mvn test -Dtest=HomePageTest
 GOG.com's frontend and bot-protection mechanisms can interfere with automated tests.
 The following constraints were identified and addressed:
 
-| Constraint | Mitigation |
-|-----------|-----------|
-| **GDPR cookie-consent modal** | `TestUtils.dismissCookieConsent()` auto-clicks the accept button before tests that navigate to a new page. |
-| **Asynchronous game tile loading** | `TestUtils.pause()` and `WebDriverWait` with `ExpectedConditions` handle XHR-loaded content. |
+| Constraint                             | Mitigation                                                                                                                         |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| **GDPR cookie-consent modal**          | `TestUtils.dismissCookieConsent()` auto-clicks the accept button before tests that navigate to a new page.                         |
+| **Asynchronous game tile loading**     | `TestUtils.pause()` and `WebDriverWait` with `ExpectedConditions` handle XHR-loaded content.                                       |
 | **Dynamic / minified CSS class names** | Tests use `aria-label`, `href`, `data-qa`, `type`, and `placeholder` attributes instead of fragile class selectors where possible. |
-| **CAPTCHA on login** | Pre-authenticate the test account in a normal Chrome session on the same machine before running authenticated tests. |
-| **Age-gate overlays on game pages** | Tests assert element presence without depending on gated content; verified against a GOG-published title (The Witcher 3). |
-| **Price changes during sales** | Tests assert that a price element *exists*, not its specific value. |
-| **Chrome automation detection** | `ChromeOptions` flags (`--disable-blink-features=AutomationControlled`, `useAutomationExtension=false`) reduce detection signals. |
+| **CAPTCHA on login**                   | Pre-authenticate the test account in a normal Chrome session on the same machine before running authenticated tests.               |
+| **Age-gate overlays on game pages**    | Tests assert element presence without depending on gated content; verified against a GOG-published title (The Witcher 3).          |
+| **Price changes during sales**         | Tests assert that a price element _exists_, not its specific value.                                                                |
+| **Chrome automation detection**        | `ChromeOptions` flags (`--disable-blink-features=AutomationControlled`, `useAutomationExtension=false`) reduce detection signals.  |
 
 ---
 
@@ -170,9 +178,8 @@ The following constraints were identified and addressed:
 - The GitHub public repository link is provided in Section 1.5 of the report:
   **https://github.com/DennisKerry/GOG-Tester**
 
-
 **Team Members:** Robert Benstine · Dennis Kerry · Myles Vinal  
-**Instructor:** *(Course Instructor)*  
+**Instructor:** _(Course Instructor)_  
 **System Under Test:** [Instagram](https://www.instagram.com) (web)
 
 ---
@@ -184,16 +191,16 @@ public-facing web application using **Selenium WebDriver**, **TestNG**, and **Ma
 
 The suite contains **8 test classes** (≥ 5 test methods each) covering:
 
-| # | Test Class | Needs Login | Methods |
-|---|-----------|-------------|---------|
-| 1 | `LoginPageTest` | No | 8 |
-| 2 | `SignupPageTest` | No | 8 |
-| 3 | `HomePageTest` | Yes | 7 |
-| 4 | `SearchTest` | Yes | 6 |
-| 5 | `ProfileTest` | Yes | 7 |
-| 6 | `ExplorePageTest` | Yes | 6 |
-| 7 | `ReelsTest` | Yes | 7 |
-| 8 | `NavigationTest` | Yes | 6 |
+| #   | Test Class        | Needs Login | Methods |
+| --- | ----------------- | ----------- | ------- |
+| 1   | `LoginPageTest`   | No          | 8       |
+| 2   | `SignupPageTest`  | No          | 8       |
+| 3   | `HomePageTest`    | Yes         | 7       |
+| 4   | `SearchTest`      | Yes         | 6       |
+| 5   | `ProfileTest`     | Yes         | 7       |
+| 6   | `ExplorePageTest` | Yes         | 6       |
+| 7   | `ReelsTest`       | Yes         | 7       |
+| 8   | `NavigationTest`  | Yes         | 6       |
 
 All 8 classes are wired into **`testng.xml`** (the integration runner).
 
@@ -233,11 +240,11 @@ instagram-selenium-testing/
 
 ## Prerequisites
 
-| Tool | Version |
-|------|---------|
-| Java JDK | 11 or later |
-| Maven | 3.8+ |
-| Google Chrome | Latest stable |
+| Tool            | Version                                    |
+| --------------- | ------------------------------------------ |
+| Java JDK        | 11 or later                                |
+| Maven           | 3.8+                                       |
+| Google Chrome   | Latest stable                              |
 | Internet access | Required (tests run against instagram.com) |
 
 ChromeDriver is downloaded automatically by **WebDriverManager** – no manual
@@ -248,12 +255,14 @@ driver installation needed.
 ## Setup Instructions
 
 ### 1 – Clone the repository
+
 ```bash
 git clone https://github.com/<your-org>/instagram-selenium-testing.git
 cd instagram-selenium-testing
 ```
 
 ### 2 – Add your credentials
+
 Open `src/test/resources/config.properties` and replace the placeholders:
 
 ```properties
@@ -265,6 +274,7 @@ instagram.password=your_test_account_password
 > real credentials to a public repository.
 
 ### 3 – Run the full suite
+
 ```bash
 mvn test
 ```
@@ -272,6 +282,7 @@ mvn test
 Maven reads `testng.xml` and executes all 8 test classes sequentially.
 
 ### 4 – Run a single test class
+
 ```bash
 mvn -Dtest=LoginPageTest test
 ```
@@ -283,15 +294,15 @@ mvn -Dtest=LoginPageTest test
 Instagram's bot-protection mechanisms can interfere with automated tests.
 The following constraints were identified and addressed:
 
-| Constraint | Mitigation |
-|-----------|-----------|
-| **CAPTCHA on login** | Use a test account that has already been used from the same machine/IP via a regular Chrome session. Keep login attempts infrequent. |
-| **Cookie-consent popup** | `TestUtils.dismissCookieConsent()` auto-clicks the acceptance button before every test that navigates to a new page. |
-| **"Save login info?" dialog** | `TestUtils.performLogin()` dismisses this dialog after each login. |
-| **"Turn on notifications" prompt** | Same helper dismisses this prompt. |
-| **Dynamic class names** | Tests use `name`, `aria-label`, `href`, and `role` attributes instead of obfuscated CSS classes. |
-| **Lazy-loaded content** | `TestUtils.pause()` and `WebDriverWait` with `ExpectedConditions` handle asynchronous DOM updates. |
-| **Chrome automation banner** | `ChromeOptions` flags (`--disable-blink-features=AutomationControlled`, `useAutomationExtension=false`) reduce detection signals. |
+| Constraint                         | Mitigation                                                                                                                           |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| **CAPTCHA on login**               | Use a test account that has already been used from the same machine/IP via a regular Chrome session. Keep login attempts infrequent. |
+| **Cookie-consent popup**           | `TestUtils.dismissCookieConsent()` auto-clicks the acceptance button before every test that navigates to a new page.                 |
+| **"Save login info?" dialog**      | `TestUtils.performLogin()` dismisses this dialog after each login.                                                                   |
+| **"Turn on notifications" prompt** | Same helper dismisses this prompt.                                                                                                   |
+| **Dynamic class names**            | Tests use `name`, `aria-label`, `href`, and `role` attributes instead of obfuscated CSS classes.                                     |
+| **Lazy-loaded content**            | `TestUtils.pause()` and `WebDriverWait` with `ExpectedConditions` handle asynchronous DOM updates.                                   |
+| **Chrome automation banner**       | `ChromeOptions` flags (`--disable-blink-features=AutomationControlled`, `useAutomationExtension=false`) reduce detection signals.    |
 
 ---
 
