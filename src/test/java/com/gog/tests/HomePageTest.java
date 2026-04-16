@@ -1,4 +1,4 @@
-package com.gog.tests;
+﻿package com.gog.tests;
 
 import com.gog.base.BaseTest;
 import com.gog.utils.TestUtils;
@@ -12,7 +12,7 @@ import org.testng.annotations.Test;
 import java.io.File;
 
 /**
- * HomePageTest â€“ verifies the structure and key elements of the GOG.com home
+ * HomePageTest Ã¢â‚¬â€œ verifies the structure and key elements of the GOG.com home
  * page.
  *
  * No authentication is required; all features under test are publicly
@@ -63,7 +63,7 @@ public class HomePageTest extends BaseTest {
         @Test(description = "Verify at least one game product tile is rendered on the home page")
         public void testGameTilesPresent() {
                 driver.get(BASE_URL + "/");
-                TestUtils.pause(3000); // allow async XHR tiles to render
+                TestUtils.pause(1500); // allow async XHR tiles to render
                 boolean tilesPresent = TestUtils.isElementPresent(driver,
                                 By.cssSelector("[class*='product-tile'], [class*='product_tile'], "
                                                 + "[class*='product-card'], [class*='game-card']"));
@@ -110,7 +110,7 @@ public class HomePageTest extends BaseTest {
                 Assert.assertNotNull(screenshot, "Screenshot file must be created successfully");
                 Assert.assertTrue(screenshot.exists(), "Screenshot file must exist on disk");
                 Assert.assertTrue(screenshot.length() > 0,
-                                "Screenshot file must not be empty — expected image data");
+                                "Screenshot file must not be empty â€” expected image data");
         }
 
         @Test(description = "Verify at least one session cookie is set after visiting GOG.com")

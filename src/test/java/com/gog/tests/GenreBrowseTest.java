@@ -1,4 +1,4 @@
-package com.gog.tests;
+﻿package com.gog.tests;
 
 import com.gog.base.BaseTest;
 import com.gog.utils.TestUtils;
@@ -54,7 +54,7 @@ public class GenreBrowseTest extends BaseTest {
     @Test(description = "Verify game product tiles are rendered in the RPG genre listing")
     public void testGameTilesPresentInGenre() {
         driver.get(RPG_URL);
-        TestUtils.pause(3000); // allow XHR tile results to render
+        TestUtils.pause(1500); // allow XHR tile results to render
         boolean tilesPresent = TestUtils.isElementPresent(driver,
                 By.cssSelector("[class*='product-tile'], [class*='product_tile'], "
                         + "[class*='product-card'], [class*='productcell']"));
@@ -65,7 +65,7 @@ public class GenreBrowseTest extends BaseTest {
     @Test(description = "Verify game tile cover images are present in the genre listing")
     public void testGameTileImagesPresent() {
         driver.get(RPG_URL);
-        TestUtils.pause(3000);
+        TestUtils.pause(1500);
         boolean imagesPresent = TestUtils.isElementPresent(driver,
                 By.cssSelector("[class*='product-tile'] img, [class*='product_tile'] img, "
                         + "[class*='product-card'] img, [class*='productcell'] img"))
@@ -120,7 +120,7 @@ public class GenreBrowseTest extends BaseTest {
     @Test(description = "Verify the RPG genre listing contains more than one game tile (count-based assertion)")
     public void testRpgGenreHasMultipleTiles() {
         driver.get(RPG_URL);
-        TestUtils.pause(3000);
+        TestUtils.pause(1500);
         List<WebElement> tiles = driver.findElements(
                 By.cssSelector("[class*='product-tile'], [class*='product_tile'], "
                         + "[class*='product-card'], [class*='productcell']"));

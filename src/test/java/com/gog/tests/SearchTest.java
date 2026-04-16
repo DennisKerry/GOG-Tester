@@ -1,4 +1,4 @@
-package com.gog.tests;
+﻿package com.gog.tests;
 
 import com.gog.base.BaseTest;
 import com.gog.utils.TestUtils;
@@ -11,7 +11,7 @@ import org.testng.annotations.Test;
 import java.util.List;
 
 /**
- * SearchTest â€“ verifies the GOG.com game search functionality.
+ * SearchTest Ã¢â‚¬â€œ verifies the GOG.com game search functionality.
  *
  * GOG exposes search both through a header overlay/autocomplete and through
  * the catalog page URL parameter: /games?search=TERM
@@ -57,7 +57,7 @@ public class SearchTest extends BaseTest {
         @Test(description = "Verify searching 'witcher' returns at least one game tile")
         public void testSearchReturnsResults() {
                 driver.get(SEARCH_URL);
-                TestUtils.pause(3000); // allow XHR results to render
+                TestUtils.pause(1500); // allow XHR results to render
                 boolean tilesPresent = TestUtils.isElementPresent(driver,
                                 By.cssSelector("[class*='product-tile'], [class*='product_tile'], "
                                                 + "[class*='product-card'], [class*='productcell']"));
@@ -68,7 +68,7 @@ public class SearchTest extends BaseTest {
         @Test(description = "Verify search result tiles contain a visible game title")
         public void testSearchResultsHaveTitles() {
                 driver.get(SEARCH_URL);
-                TestUtils.pause(3000);
+                TestUtils.pause(1500);
                 // Game tiles are links to /en/game/ URLs; find the first one with non-empty
                 // text.
                 // Using visibilityOfElementLocated + textContent attribute handles React SPAs
@@ -87,7 +87,7 @@ public class SearchTest extends BaseTest {
         @Test(description = "Verify search result tiles contain cover images")
         public void testSearchResultsHaveImages() {
                 driver.get(SEARCH_URL);
-                TestUtils.pause(3000);
+                TestUtils.pause(1500);
                 boolean imagesPresent = TestUtils.isElementPresent(driver,
                                 By.cssSelector("[class*='product-tile'] img, [class*='product_tile'] img, "
                                                 + "[class*='product-card'] img, [class*='productcell'] img"))
@@ -118,7 +118,7 @@ public class SearchTest extends BaseTest {
         @Test(description = "Verify at least one game result tile appears for a 'witcher' search (count-based assertion)")
         public void testSearchResultCountAtLeastOne() {
                 driver.get(SEARCH_URL);
-                TestUtils.pause(3000);
+                TestUtils.pause(1500);
                 List<WebElement> tiles = driver.findElements(
                                 By.cssSelector("[class*='product-tile'], [class*='product_tile'], "
                                                 + "[class*='product-card'], [class*='productcell']"));
@@ -145,9 +145,9 @@ public class SearchTest extends BaseTest {
                         Assert.assertTrue(value.toLowerCase().contains("witcher"),
                                         "Search input must accept and retain keyboard text, actual value: " + value);
                 } catch (Exception e) {
-                        // Search input may be hidden behind an icon click — fall back to URL search
+                        // Search input may be hidden behind an icon click â€” fall back to URL search
                         driver.get(BASE_URL + "/games?search=witcher");
-                        TestUtils.pause(2000);
+                        TestUtils.pause(800);
                         Assert.assertTrue(driver.getCurrentUrl().contains("gog.com"),
                                         "Search results page must be accessible on gog.com");
                 }

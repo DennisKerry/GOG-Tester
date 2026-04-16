@@ -123,7 +123,7 @@ public class LoginPageTest extends BaseTest {
                 passField.clear();
 
                 driver.findElement(SUBMIT_BTN).click();
-                TestUtils.pause(2000);
+                TestUtils.pause(800);
 
                 String url = driver.getCurrentUrl();
                 Assert.assertTrue(url.contains("gog.com"),
@@ -153,7 +153,7 @@ public class LoginPageTest extends BaseTest {
                 passField.sendKeys("TotallyWrongPassword999!");
 
                 driver.findElement(SUBMIT_BTN).click();
-                TestUtils.pause(3000);
+                TestUtils.pause(1500);
 
                 String url = driver.getCurrentUrl();
                 Assert.assertTrue(url.contains("gog.com"),
@@ -184,7 +184,7 @@ public class LoginPageTest extends BaseTest {
                 } catch (Exception ignored) {
                         /* CAPTCHA or 2FA may have appeared */ }
 
-                TestUtils.pause(2000);
+                TestUtils.pause(800);
                 String url = driver.getCurrentUrl();
                 Assert.assertTrue(url.contains("gog.com"),
                                 "After valid login, user must be on gog.com, actual: " + url);
@@ -215,7 +215,7 @@ public class LoginPageTest extends BaseTest {
                                 "Forgot Password link must have a valid href attribute");
 
                 forgotLink.click();
-                TestUtils.pause(2000);
+                TestUtils.pause(800);
 
                 String urlAfter = driver.getCurrentUrl();
                 Assert.assertTrue(urlAfter.contains("gog.com"),
@@ -248,7 +248,7 @@ public class LoginPageTest extends BaseTest {
                                 "Create Account link must be visible on the login page");
 
                 createLink.click();
-                TestUtils.pause(2000);
+                TestUtils.pause(800);
 
                 String urlAfter = driver.getCurrentUrl();
                 Assert.assertTrue(urlAfter.contains("gog.com"),

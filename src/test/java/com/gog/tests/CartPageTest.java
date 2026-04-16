@@ -1,4 +1,4 @@
-package com.gog.tests;
+﻿package com.gog.tests;
 
 import com.gog.base.BaseTest;
 import com.gog.utils.TestUtils;
@@ -66,7 +66,7 @@ public class CartPageTest extends BaseTest {
 
         @Test(description = "Verify the page shows cart-related content or a sign-in prompt")
         public void testEmptyCartOrHeadingPresent() {
-                TestUtils.pause(2000);
+                TestUtils.pause(800);
                 boolean cartContentPresent = TestUtils.isElementPresent(driver,
                                 By.xpath("//*[contains(translate(text(),'ABCDEFGHIJKLMNOPQRSTUVWXYZ',"
                                                 + "'abcdefghijklmnopqrstuvwxyz'),'cart')"
@@ -88,7 +88,7 @@ public class CartPageTest extends BaseTest {
 
         @Test(description = "Verify a navigation link back to the GOG store is accessible")
         public void testContinueShoppingLinkPresent() {
-                TestUtils.pause(2000);
+                TestUtils.pause(800);
                 boolean navLinkPresent = TestUtils.isElementPresent(driver,
                                 By.xpath("//a[contains(@href,'gog.com') "
                                                 + "and string-length(normalize-space(.)) > 0][1]"));
@@ -137,7 +137,7 @@ public class CartPageTest extends BaseTest {
                         Assert.assertTrue(hasIdentifier,
                                         "Cart element must have a non-empty href, aria-label, data-cy, or hook-test attribute");
                 } else {
-                        // Cart element not found — assert menu is still accessible
+                        // Cart element not found â€” assert menu is still accessible
                         boolean menuPresent = TestUtils.isElementPresent(driver,
                                         By.cssSelector("[class*='menu__'], [class*='menu-item'], [class*='header__']"));
                         Assert.assertTrue(menuPresent,
