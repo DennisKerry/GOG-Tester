@@ -115,7 +115,12 @@ public class TestUtils {
                                     + "'abcdefghijklmnopqrstuvwxyz'),'ok')"
                                     + " or @id='onetrust-accept-btn-handler'"
                                     + " or contains(@class,'accept')]")));
-            btn.click();
+            try {
+                btn.click();
+            } catch (Exception ce) {
+                // Element intercepted by overlay – use JavaScript click as fallback
+                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", btn);
+            }
         } catch (TimeoutException | NoSuchElementException ignored) {
             // No consent dialog present â€“ continue
         }
