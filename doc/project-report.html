@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GOG Tester - Project Report</title>
+  <style>
+    :root {
+      --bg: #f4f6f8;
+      --card: #ffffff;
+      --ink: #0f172a;
+      --muted: #475569;
+      --line: #d9e2ec;
+      --accent: #0b7285;
+      --accent-soft: #e6f4f7;
+      --ok: #2f9e44;
+      --warn: #e67700;
+      --bad: #d9480f;
+      --shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Trebuchet MS", sans-serif;
+      color: var(--ink);
+      background: radial-gradient(circle at 10% -10%, #d0ebff 0%, transparent 35%),
+                  radial-gradient(circle at 90% 0%, #d3f9d8 0%, transparent 30%),
+                  var(--bg);
+      line-height: 1.5;
+    }
+
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 28px 18px 48px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #0b7285, #1864ab);
+      color: #fff;
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: var(--shadow);
+      margin-bottom: 18px;
+    }
+
+    .hero h1 {
+      margin: 0 0 8px;
+      font-size: 1.9rem;
+      letter-spacing: 0.3px;
+    }
+
+    .hero p {
+      margin: 4px 0;
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin: 14px 0 20px;
+    }
+
+    .stat {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-left: 5px solid var(--accent);
+      border-radius: 12px;
+      padding: 12px;
+      box-shadow: var(--shadow);
+    }
+
+    .stat .label {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .stat .value {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      padding: 18px;
+      margin-bottom: 14px;
+    }
+
+    .card h2 {
+      margin-top: 0;
+      font-size: 1.15rem;
+      border-bottom: 2px solid var(--accent-soft);
+      padding-bottom: 8px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.95rem;
+    }
+
+    th, td {
+      text-align: left;
+      border-bottom: 1px solid var(--line);
+      padding: 9px 8px;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f8fafc;
+      font-weight: 600;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border: 1px solid transparent;
+    }
+
+    .ok {
+      background: #ebfbee;
+      color: var(--ok);
+      border-color: #c3e6cb;
+    }
+
+    .warn {
+      background: #fff4e6;
+      color: var(--warn);
+      border-color: #ffd8a8;
+    }
+
+    .bad {
+      background: #fff5f5;
+      color: var(--bad);
+      border-color: #ffc9c9;
+    }
+
+    ul {
+      margin: 8px 0;
+      padding-left: 20px;
+    }
+
+    code {
+      background: #f1f3f5;
+      border: 1px solid #dee2e6;
+      border-radius: 6px;
+      padding: 1px 6px;
+      font-size: 0.92em;
+    }
+
+    .footer {
+      margin-top: 12px;
+      font-size: 0.86rem;
+      color: #5c677d;
+      text-align: center;
+    }
+
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 560px) {
+      .wrap { padding: 16px 10px 28px; }
+      .hero { padding: 18px; }
+      .grid { grid-template-columns: 1fr; }
+      table { font-size: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <h1>GOG Tester - HTML Project Report</h1>
+      <p><strong>Project:</strong> Automated end-to-end testing suite for GOG.com</p>
+      <p><strong>Course:</strong> CEN 4072 Software Testing (Spring 2026), Group 15</p>
+      <p><strong>Generated:</strong> 2026-04-16</p>
+    </section>
+
+    <section class="grid" aria-label="Summary statistics">
+      <article class="stat">
+        <div class="label">Total Test Classes</div>
+        <div class="value">8</div>
+      </article>
+      <article class="stat">
+        <div class="label">Total Test Methods</div>
+        <div class="value">53</div>
+      </article>
+      <article class="stat">
+        <div class="label">Passed / Failed</div>
+        <div class="value">53 / 0</div>
+      </article>
+      <article class="stat">
+        <div class="label">Suite Duration</div>
+        <div class="value">329.001s</div>
+      </article>
+    </section>
+
+    <section class="card">
+      <h2>1. Project Scope</h2>
+      <p>This automation suite validates major user flows on <strong>GOG.com</strong> using Selenium WebDriver with TestNG and Maven.</p>
+      <ul>
+        <li>Target system: public GOG storefront and product pages.</li>
+        <li>Execution model: UI-level browser automation with reusable base and utility layers.</li>
+        <li>Run trigger: TestNG suite execution via Maven Surefire.</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>2. Suite Execution Metadata</h2>
+      <p><strong>Suite name:</strong> GOG Selenium Test Suite</p>
+      <p><strong>Started:</strong> 2026-04-16 11:17:50</p>
+      <p><strong>Finished:</strong> 2026-04-16 11:23:19</p>
+      <p><strong>Skipped tests:</strong> 0</p>
+    </section>
+
+    <section class="card">
+      <h2>3. Class-Level Results</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Test Class</th>
+            <th>Tests</th>
+            <th>Failures</th>
+            <th>Errors</th>
+            <th>Skipped</th>
+            <th>Time (s)</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>com.gog.tests.CartPageTest</td>
+            <td>7</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>4.132</td>
+            <td><span class="badge ok">PASS</span></td>
+          </tr>
+          <tr>
+            <td>com.gog.tests.GamePageTest</td>
+            <td>7</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>28.168</td>
+            <td><span class="badge ok">PASS</span></td>
+          </tr>
+          <tr>
+            <td>com.gog.tests.GenreBrowseTest</td>
+            <td>6</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>13.897</td>
+            <td><span class="badge ok">PASS</span></td>
+          </tr>
+          <tr>
+            <td>com.gog.tests.HomePageTest</td>
+            <td>7</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>9.684</td>
+            <td><span class="badge ok">PASS</span></td>
+          </tr>
+          <tr>
+            <td>com.gog.tests.LoginPageTest</td>
+            <td>7</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>30.258</td>
+            <td><span class="badge ok">PASS</span></td>
+          </tr>
+          <tr>
+            <td>com.gog.tests.NavigationTest</td>
+            <td>6</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>9.055</td>
+            <td><span class="badge ok">PASS</span></td>
+          </tr>
+          <tr>
+            <td>com.gog.tests.SearchTest</td>
+            <td>6</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>17.212</td>
+            <td><span class="badge ok">PASS</span></td>
+          </tr>
+          <tr>
+            <td>com.gog.tests.SignupPageTest</td>
+            <td>7</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0.108</td>
+            <td><span class="badge ok">PASS</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="card">
+      <h2>4. Regeneration Behavior</h2>
+      <ul>
+        <li>This file is regenerated automatically at the end of each TestNG suite run.</li>
+        <li>No manual editing is required to refresh result metrics.</li>
+      </ul>
+    </section>
+
+    <p class="footer">End of report - generated by HtmlProjectReportListener.</p>
+  </main>
+</body>
+</html>
