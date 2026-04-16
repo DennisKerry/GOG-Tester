@@ -3,7 +3,6 @@
 import com.gog.base.BaseTest;
 import com.gog.utils.TestUtils;
 import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -17,66 +16,37 @@ import java.util.List;
  * LoginPageTest -- verifies the GOG.com login page structure and form behaviour,
  * including real typing, form submission, and response validation.
  *
- * Credentials are loaded from src/test/resources/config.properties.
+ * Target URL: https://login.gog.com/login
+ * The form is directly visible at this URL -- no intermediate trigger needed.
  *
- * Automation constraints noted:
- * - GOG's login page is an Angular SPA that may show a "LOG IN NOW" trigger
- *   before revealing the email + password form. A shared helper reveals the
- *   form once per class in @BeforeClass.
- * - Tests that submit the form re-navigate to a fresh login page themselves so
- *   they are not affected by whatever state the previous test left behind.
- * - GOG may rate-limit or CAPTCHA after multiple rapid invalid-login attempts;
- *   run with reasonable intervals during development.
+ * Key element IDs (from live page HTML):
+ *   login_username -- email input
+ *   login_password -- password input
+ *   login_login    -- submit button
  */
 public class LoginPageTest extends BaseTest {
 
     private static final String LOGIN_URL = "https://login.gog.com/login";
 
+    // Selectors derived from actual GOG login page HTML
+    private static final By EMAIL_FIELD  = By.id("login_username");
+    private static final By PASS_FIELD   = By.id("login_password");
+    private static final By SUBMIT_BTN   = By.id("login_login");
+
     // -----------------------------------------------------------------------
-    // Setup -- navigate to the login page and reveal the form once
+    // Setup -- navigate once for tests that only read the page
     // -----------------------------------------------------------------------
 
-    @BeforeClass(dependsOnMethods = "setUp")
+    @BeforeClass
     public void navigateToLoginPage() {
         driver.get(LOGIN_URL);
         TestUtils.dismissCookieConsent(driver);
-        revealLoginForm();
-    }
-
-    /**
-     * GOG's Angular login page may gate the email/password form behind a
-     * "LOG IN NOW" button. This helper clicks that trigger (if present) and
-     * waits for the email input to become visible before returning.
-     */
-    private void revealLoginForm() {
-        TestUtils.pause(2000);
-        try {
-            WebElement trigger = (WebElement) ((JavascriptExecutor) driver).executeScript(
-                    "var walker = document.createTreeWalker("
-                    + "document.body, NodeFilter.SHOW_TEXT, null, false);"
-                    + "var node;"
-                    + "while ((node = walker.nextNode()) != null) {"
-                    + "  var t = (node.nodeValue || '').trim().toUpperCase();"
-                    + "  if (t === 'LOG IN NOW' || t === 'SIGN IN NOW') return node.parentElement;"
-                    + "}"
-                    + "return null;");
-            if (trigger != null) {
-                trigger.click();
-                TestUtils.pause(1500);
-            }
-        } catch (Exception ignored) { /* form may already be visible */ }
-
-        // Wait until the email field (or the LOG IN NOW trigger) is present
-        try {
-            wait.until(ExpectedConditions.or(
-                    ExpectedConditions.visibilityOfElementLocated(By.cssSelector("input[type='email']")),
-                    ExpectedConditions.visibilityOfElementLocated(
-                            By.xpath("//*[normalize-space(text())='LOG IN NOW']"))));
-        } catch (Exception ignored) { /* proceed -- individual tests handle missing fields */ }
+        // Wait until the email input is actually on screen before any test runs
+        wait.until(ExpectedConditions.visibilityOfElementLocated(EMAIL_FIELD));
     }
 
     // -----------------------------------------------------------------------
-    // Test 1-2 -- page-level properties (no form interaction needed)
+    // Test 1-2 -- page-level properties
     // -----------------------------------------------------------------------
 
     @Test(priority = 1, description = "Verify the GOG login page title contains 'GOG'")
@@ -93,7 +63,7 @@ public class LoginPageTest extends BaseTest {
         Assert.assertTrue(url.startsWith("https://"),
                 "GOG login page must be served over HTTPS, actual: " + url);
         Assert.assertTrue(url.contains("gog.com"),
-                "GOG login must be served from the gog.com domain, actual: " + url);
+                "GOG login must be on the gog.com domain, actual: " + url);
     }
 
     // -----------------------------------------------------------------------
@@ -101,82 +71,71 @@ public class LoginPageTest extends BaseTest {
     // -----------------------------------------------------------------------
 
     @Test(priority = 3,
-          description = "Verify the email field accepts typed input and the "
-                      + "value attribute reflects exactly what was typed")
+          description = "Verify the email field accepts typed input and its value "
+                      + "attribute reflects exactly what was typed")
     public void testEmailFieldAcceptsTypedInput() {
-        List<WebElement> emailFields = driver.findElements(By.cssSelector("input[type='email']"));
-        Assert.assertFalse(emailFields.isEmpty(),
-                "An email/username input field must be present on the login page");
+        WebElement emailField = wait.until(ExpectedConditions.visibilityOfElementLocated(EMAIL_FIELD));
 
-        WebElement emailField = emailFields.get(0);
         emailField.clear();
         emailField.sendKeys("test.input@example.com");
 
         String value = emailField.getAttribute("value");
-        Assert.assertNotNull(value, "Email field must expose a 'value' attribute after typing");
         Assert.assertEquals(value, "test.input@example.com",
                 "Email field value must match exactly what was typed");
 
-        // Clear and verify the field empties
+        // Clear and confirm the field empties
         emailField.clear();
-        String clearedValue = emailField.getAttribute("value");
-        Assert.assertTrue(clearedValue == null || clearedValue.isEmpty(),
+        String cleared = emailField.getAttribute("value");
+        Assert.assertTrue(cleared == null || cleared.isEmpty(),
                 "Email field must be empty after clear()");
     }
 
     @Test(priority = 4,
-          description = "Verify the password field is masked (type='password') "
-                      + "and accepts typed input without exposing the value as plain text")
+          description = "Verify the password field has type='password' to mask input "
+                      + "and accepts typed text")
     public void testPasswordFieldMaskedAndAcceptsInput() {
-        List<WebElement> passFields = driver.findElements(By.cssSelector("input[type='password']"));
-        Assert.assertFalse(passFields.isEmpty(),
-                "A password input field must be present on the login page");
+        WebElement passField = wait.until(ExpectedConditions.visibilityOfElementLocated(PASS_FIELD));
 
-        WebElement passField = passFields.get(0);
         Assert.assertEquals(passField.getAttribute("type"), "password",
-                "Password field type must be 'password' to mask the credential on screen");
+                "Password field type must be 'password' to mask credentials on screen");
         Assert.assertTrue(passField.isEnabled(),
-                "Password field must be enabled so the user can type into it");
+                "Password field must be enabled for user interaction");
 
         passField.clear();
-        passField.sendKeys("SomeTypedPassword");
+        passField.sendKeys("SomeTestPassword");
         String value = passField.getAttribute("value");
-        // The value attribute is populated even for masked fields
         Assert.assertFalse(value == null || value.isEmpty(),
-                "Password field value attribute must not be empty after typing");
+                "Password field must retain typed input in its value attribute");
 
         passField.clear();
     }
 
     // -----------------------------------------------------------------------
-    // Test 5 -- submit EMPTY form
+    // Test 5 -- submit EMPTY form, verify no unintended redirect
     // -----------------------------------------------------------------------
 
     @Test(priority = 5,
-          description = "Verify submitting the login form with empty fields keeps "
-                      + "the user on the GOG auth page (no unintended redirect)")
+          description = "Verify submitting a completely empty login form keeps the "
+                      + "user on the GOG auth page")
     public void testEmptyFormSubmissionStaysOnPage() {
         driver.get(LOGIN_URL);
-        revealLoginForm();
+        WebElement emailField = wait.until(ExpectedConditions.visibilityOfElementLocated(EMAIL_FIELD));
+        WebElement passField  = driver.findElement(PASS_FIELD);
 
-        List<WebElement> emailFields = driver.findElements(By.cssSelector("input[type='email']"));
-        List<WebElement> passFields  = driver.findElements(By.cssSelector("input[type='password']"));
+        emailField.clear();
+        passField.clear();
 
-        if (!emailFields.isEmpty()) emailFields.get(0).clear();
-        if (!passFields.isEmpty())  passFields.get(0).clear();
-
-        // Submit via the submit button or keyboard Enter
-        List<WebElement> submitBtns = driver.findElements(By.cssSelector("button[type='submit']"));
-        if (!submitBtns.isEmpty()) {
-            submitBtns.get(0).click();
-        } else if (!emailFields.isEmpty()) {
-            emailFields.get(0).sendKeys(Keys.RETURN);
-        }
-
+        driver.findElement(SUBMIT_BTN).click();
         TestUtils.pause(2000);
+
         String url = driver.getCurrentUrl();
         Assert.assertTrue(url.contains("gog.com"),
-                "Submitting an empty login form must keep the user on gog.com, actual: " + url);
+                "Submitting an empty form must keep the user on gog.com, actual: " + url);
+
+        // GOG shows inline error messages -- at least one should now be visible
+        boolean inlineError = TestUtils.isElementPresent(driver,
+                By.cssSelector(".js-error-msg:not(.is-hidden), .field__msg:not(.is-hidden)"));
+        System.out.println("[LoginPageTest] Inline error visible after empty submit: " + inlineError);
     }
 
     // -----------------------------------------------------------------------
@@ -185,49 +144,24 @@ public class LoginPageTest extends BaseTest {
 
     @Test(priority = 6,
           description = "Verify submitting invalid credentials keeps the user on "
-                      + "the GOG auth domain and shows an error indicator")
-    public void testInvalidCredentialsShowsError() {
+                      + "the GOG auth domain")
+    public void testInvalidCredentialsStayOnAuthDomain() {
         driver.get(LOGIN_URL);
-        revealLoginForm();
+        WebElement emailField = wait.until(ExpectedConditions.visibilityOfElementLocated(EMAIL_FIELD));
+        WebElement passField  = driver.findElement(PASS_FIELD);
 
-        WebElement emailField = wait.until(
-                ExpectedConditions.visibilityOfElementLocated(By.cssSelector("input[type='email']")));
         emailField.clear();
         emailField.sendKeys("nobody@notarealaccount.xyz");
 
-        WebElement passField = wait.until(
-                ExpectedConditions.visibilityOfElementLocated(By.cssSelector("input[type='password']")));
         passField.clear();
         passField.sendKeys("TotallyWrongPassword999!");
 
-        driver.findElement(By.cssSelector("button[type='submit']")).click();
+        driver.findElement(SUBMIT_BTN).click();
         TestUtils.pause(3000);
 
         String url = driver.getCurrentUrl();
         Assert.assertTrue(url.contains("gog.com"),
                 "After invalid login, user must remain on gog.com, actual: " + url);
-
-        // GOG shows an inline error message or highlights the form on failure
-        boolean errorVisible = TestUtils.isElementPresent(driver,
-                By.xpath("//*[contains(translate(text(),"
-                        + "'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),'incorrect')"
-                        + " or contains(translate(text(),"
-                        + "'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),'invalid')"
-                        + " or contains(translate(text(),"
-                        + "'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),'wrong')"
-                        + " or contains(translate(text(),"
-                        + "'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),'error')"
-                        + " or contains(translate(text(),"
-                        + "'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),'failed')"
-                        + " or contains(translate(@class,"
-                        + "'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),'error')"
-                        + " or contains(translate(@class,"
-                        + "'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),'invalid')]"));
-        System.out.println("[LoginPageTest] Error indicator visible after invalid login: "
-                + errorVisible);
-        // Hard assert: user must stay on gog.com
-        Assert.assertTrue(url.contains("gog.com"),
-                "User must stay on gog.com after invalid login");
     }
 
     // -----------------------------------------------------------------------
@@ -235,28 +169,24 @@ public class LoginPageTest extends BaseTest {
     // -----------------------------------------------------------------------
 
     @Test(priority = 7,
-          description = "Verify submitting correct credentials redirects the user "
-                      + "to the GOG store / account area")
+          description = "Verify submitting correct credentials redirects to the GOG store")
     public void testValidCredentialsRedirectToStore() {
         driver.get(LOGIN_URL);
-        revealLoginForm();
+        WebElement emailField = wait.until(ExpectedConditions.visibilityOfElementLocated(EMAIL_FIELD));
+        WebElement passField  = driver.findElement(PASS_FIELD);
 
-        WebElement emailField = wait.until(
-                ExpectedConditions.visibilityOfElementLocated(By.cssSelector("input[type='email']")));
         emailField.clear();
         emailField.sendKeys(TestUtils.getUsername());
 
-        WebElement passField = wait.until(
-                ExpectedConditions.visibilityOfElementLocated(By.cssSelector("input[type='password']")));
         passField.clear();
         passField.sendKeys(TestUtils.getPassword());
 
-        driver.findElement(By.cssSelector("button[type='submit']")).click();
+        driver.findElement(SUBMIT_BTN).click();
 
-        // Wait up to 20 s for the redirect back to www.gog.com
+        // Wait up to 20 s for redirect to www.gog.com
         try {
             wait.until(ExpectedConditions.urlContains("www.gog.com"));
-        } catch (Exception ignored) { /* may stay on login.gog.com if CAPTCHA appeared */ }
+        } catch (Exception ignored) { /* CAPTCHA or 2FA may have appeared */ }
 
         TestUtils.pause(2000);
         String url = driver.getCurrentUrl();
@@ -265,15 +195,15 @@ public class LoginPageTest extends BaseTest {
     }
 
     // -----------------------------------------------------------------------
-    // Test 8 -- Forgot Password navigates to the reset page
+    // Test 8 -- Forgot Password link
     // -----------------------------------------------------------------------
 
     @Test(priority = 8,
-          description = "Verify clicking the Forgot Password link navigates to "
-                      + "the GOG password-reset page")
+          description = "Verify clicking the Forgot Password link navigates to the "
+                      + "GOG password-reset page")
     public void testForgotPasswordNavigation() {
         driver.get(LOGIN_URL);
-        revealLoginForm();
+        wait.until(ExpectedConditions.visibilityOfElementLocated(EMAIL_FIELD));
 
         WebElement forgotLink = wait.until(
                 ExpectedConditions.visibilityOfElementLocated(
@@ -294,21 +224,21 @@ public class LoginPageTest extends BaseTest {
 
         String urlAfter = driver.getCurrentUrl();
         Assert.assertTrue(urlAfter.contains("gog.com"),
-                "Forgot Password must navigate to a gog.com page, actual: " + urlAfter);
+                "Forgot Password must stay on gog.com, actual: " + urlAfter);
         Assert.assertFalse(urlAfter.equals(LOGIN_URL),
                 "Forgot Password must navigate away from the login page, actual: " + urlAfter);
     }
 
     // -----------------------------------------------------------------------
-    // Test 9 -- Create Account link navigates to registration
+    // Test 9 -- Create Account link
     // -----------------------------------------------------------------------
 
     @Test(priority = 9,
-          description = "Verify clicking the Create Account link navigates to "
-                      + "the GOG registration page")
+          description = "Verify clicking the Create Account link navigates to the "
+                      + "GOG registration page")
     public void testCreateAccountNavigation() {
         driver.get(LOGIN_URL);
-        revealLoginForm();
+        wait.until(ExpectedConditions.visibilityOfElementLocated(EMAIL_FIELD));
 
         WebElement createLink = wait.until(
                 ExpectedConditions.visibilityOfElementLocated(
