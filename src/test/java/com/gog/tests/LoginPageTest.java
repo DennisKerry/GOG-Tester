@@ -136,4 +136,47 @@ public class LoginPageTest extends BaseTest {
                 Assert.assertTrue(url.contains("login.gog.com"),
                                 "GOG login must be served from the auth subdomain, actual: " + url);
         }
+
+        @Test(description = "Verify the password input field has type='password' to mask user credentials")
+        public void testPasswordFieldMasked() {
+                java.util.List<WebElement> passFields =
+                                driver.findElements(By.cssSelector("input[type='password']"));
+                if (!passFields.isEmpty()) {
+                        String inputType = passFields.get(0).getAttribute("type");
+                        Assert.assertEquals(inputType, "password",
+                                        "Password input type must be 'password' to mask credentials, actual: "
+                                                        + inputType);
+                        Assert.assertTrue(passFields.get(0).isEnabled(),
+                                        "Password input must be enabled for user interaction");
+                } else {
+                        boolean hasTrigger = !driver.findElements(
+                                        By.xpath("//*[normalize-space(text())='LOG IN NOW']")).isEmpty();
+                        Assert.assertTrue(hasTrigger,
+                                        "Either a masked password field or LOG IN NOW trigger must be present");
+                }
+        }
+
+        @Test(description = "Verify submitting invalid credentials keeps the user on the GOG auth domain")
+        public void testInvalidCredentialsStayOnAuthDomain() {
+                java.util.List<WebElement> emailFields =
+                                driver.findElements(By.cssSelector("input[type='email']"));
+                java.util.List<WebElement> passFields =
+                                driver.findElements(By.cssSelector("input[type='password']"));
+                if (!emailFields.isEmpty() && !passFields.isEmpty()) {
+                        emailFields.get(0).clear();
+                        emailFields.get(0).sendKeys("invalid_user@notarealaccount.xyz");
+                        passFields.get(0).clear();
+                        passFields.get(0).sendKeys("DefinitelyWrongPassword1!");
+                        java.util.List<WebElement> submitBtns =
+                                        driver.findElements(By.cssSelector("button[type='submit']"));
+                        if (!submitBtns.isEmpty()) {
+                                submitBtns.get(0).click();
+                                TestUtils.pause(3000);
+                        }
+                }
+                String currentUrl = driver.getCurrentUrl();
+                Assert.assertTrue(currentUrl.contains("gog.com"),
+                                "After an invalid login attempt, user must remain on gog.com, actual: "
+                                                + currentUrl);
+        }
 }

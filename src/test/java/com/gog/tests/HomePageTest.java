@@ -3,10 +3,13 @@ package com.gog.tests;
 import com.gog.base.BaseTest;
 import com.gog.utils.TestUtils;
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.testng.Assert;
 import org.testng.annotations.Test;
+
+import java.io.File;
 
 /**
  * HomePageTest â€“ verifies the structure and key elements of the GOG.com home
@@ -97,5 +100,38 @@ public class HomePageTest extends BaseTest {
         Assert.assertTrue(
                 url.startsWith("https://"),
                 "GOG home page must be served over HTTPS, actual URL: " + url);
+    }
+
+    @Test(description = "Verify a full-page screenshot of the GOG home page can be captured and is non-empty")
+    public void testScreenshotCapture() {
+        driver.get(BASE_URL + "/");
+        TestUtils.waitForPageLoad(driver);
+        File screenshot = TestUtils.takeScreenshot(driver, "home_page");
+        Assert.assertNotNull(screenshot, "Screenshot file must be created successfully");
+        Assert.assertTrue(screenshot.exists(), "Screenshot file must exist on disk");
+        Assert.assertTrue(screenshot.length() > 0,
+                "Screenshot file must not be empty — expected image data");
+    }
+
+    @Test(description = "Verify at least one session cookie is set after visiting GOG.com")
+    public void testSessionCookiesSet() {
+        driver.get(BASE_URL + "/");
+        TestUtils.waitForPageLoad(driver);
+        int cookieCount = driver.manage().getCookies().size();
+        Assert.assertTrue(cookieCount > 0,
+                "At least one cookie must be set by gog.com, actual count: " + cookieCount);
+    }
+
+    @Test(description = "Verify the GOG home page includes a viewport meta tag for mobile responsiveness")
+    public void testViewportMetaTagPresent() {
+        driver.get(BASE_URL + "/");
+        TestUtils.waitForPageLoad(driver);
+        String content = (String) ((JavascriptExecutor) driver).executeScript(
+                "var m = document.querySelector('meta[name=\"viewport\"]');"
+                        + "return m ? m.getAttribute('content') : null;");
+        Assert.assertNotNull(content,
+                "A viewport meta tag must be present on the GOG home page for mobile responsiveness");
+        Assert.assertTrue(content.contains("width"),
+                "Viewport meta content must specify 'width', actual: " + content);
     }
 }

@@ -4,9 +4,15 @@ import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Properties;
 
 /**
@@ -157,5 +163,41 @@ public class TestUtils {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
+    }
+
+    // -----------------------------------------------------------------------
+    // Screenshot and scroll helpers
+    // -----------------------------------------------------------------------
+
+    /**
+     * Captures a full-page screenshot and saves it under target/screenshots/.
+     * Returns the saved {@link File}, or {@code null} if the capture failed.
+     */
+    public static File takeScreenshot(WebDriver driver, String testName) {
+        try {
+            File srcFile = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
+            Path screenshotDir = Paths.get("target", "screenshots");
+            Files.createDirectories(screenshotDir);
+            String timestamp = LocalDateTime.now()
+                    .format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+            Path dest = screenshotDir.resolve(testName + "_" + timestamp + ".png");
+            Files.copy(srcFile.toPath(), dest);
+            return dest.toFile();
+        } catch (IOException e) {
+            System.err.println("[TestUtils] Failed to save screenshot: " + e.getMessage());
+            return null;
+        }
+    }
+
+    /** Scrolls the page to the very bottom using JavaScript. */
+    public static void scrollToBottom(WebDriver driver) {
+        ((JavascriptExecutor) driver)
+                .executeScript("window.scrollTo(0, document.body.scrollHeight);");
+    }
+
+    /** Scrolls {@code element} into the visible viewport using JavaScript. */
+    public static void scrollIntoView(WebDriver driver, WebElement element) {
+        ((JavascriptExecutor) driver)
+                .executeScript("arguments[0].scrollIntoView(true);", element);
     }
 }

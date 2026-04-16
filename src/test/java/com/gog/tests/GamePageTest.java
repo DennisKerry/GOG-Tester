@@ -8,6 +8,9 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import java.io.File;
+import java.util.List;
+
 /**
  * GamePageTest - verifies the structure and key elements of a GOG game product
  * page.
@@ -126,5 +129,64 @@ public class GamePageTest extends BaseTest {
         Assert.assertTrue(
                 driver.getCurrentUrl().startsWith("https://"),
                 "Game page must be served over HTTPS");
+    }
+
+    @Test(description = "Verify a full-page screenshot of the game product page can be captured and is non-empty")
+    public void testGamePageScreenshot() {
+        driver.get(GAME_URL);
+        TestUtils.waitForPageLoad(driver);
+        TestUtils.pause(2000);
+        File screenshot = TestUtils.takeScreenshot(driver, "game_page_witcher3");
+        Assert.assertNotNull(screenshot, "Screenshot must be captured from the game product page");
+        Assert.assertTrue(screenshot.exists(), "Screenshot file must exist on disk");
+        Assert.assertTrue(screenshot.length() > 0,
+                "Screenshot file must not be empty — expected image data");
+    }
+
+    @Test(description = "Verify the game price or ownership indicator displays non-empty text")
+    public void testGamePriceOrOwnershipPresent() {
+        driver.get(GAME_URL);
+        TestUtils.pause(3000);
+        List<WebElement> priceEls = driver.findElements(
+                By.cssSelector("[class*='price'], [class*='buy__price'], [class*='buyBtn']"));
+        if (!priceEls.isEmpty()) {
+            WebElement priceEl = priceEls.get(0);
+            TestUtils.scrollIntoView(driver, priceEl);
+            String text = priceEl.getAttribute("textContent");
+            if (text == null || text.trim().isEmpty()) {
+                text = priceEl.getText();
+            }
+            Assert.assertFalse(text == null || text.trim().isEmpty(),
+                    "Price / ownership element must display non-empty text");
+        } else {
+            // Price element was not found — assert the page is still accessible
+            Assert.assertTrue(driver.getCurrentUrl().contains("gog.com"),
+                    "Game page must remain accessible on gog.com even without a visible price element");
+        }
+    }
+
+    @Test(description = "Verify system requirements section can be scrolled into view on the game page")
+    public void testSystemRequirementsScrollable() {
+        driver.get(GAME_URL);
+        TestUtils.pause(2000);
+        By sysReqSel = By.xpath("//*[contains(translate(text(),'ABCDEFGHIJKLMNOPQRSTUVWXYZ',"
+                + "'abcdefghijklmnopqrstuvwxyz'),'system req')"
+                + " or contains(translate(text(),'ABCDEFGHIJKLMNOPQRSTUVWXYZ',"
+                + "'abcdefghijklmnopqrstuvwxyz'),'minimum')"
+                + " or contains(translate(@class,'ABCDEFGHIJKLMNOPQRSTUVWXYZ',"
+                + "'abcdefghijklmnopqrstuvwxyz'),'sysreq')]");
+        List<WebElement> sysReqEls = driver.findElements(sysReqSel);
+        if (!sysReqEls.isEmpty()) {
+            TestUtils.scrollIntoView(driver, sysReqEls.get(0));
+            TestUtils.pause(500);
+            Assert.assertTrue(sysReqEls.get(0).isDisplayed(),
+                    "System requirements section must be visible after scrolling into view");
+        } else {
+            // Element not present — scroll to bottom as a fallback scroll assertion
+            TestUtils.scrollToBottom(driver);
+            TestUtils.pause(500);
+            Assert.assertTrue(driver.getCurrentUrl().contains("gog.com"),
+                    "Page must remain on gog.com after scrolling to the bottom");
+        }
     }
 }

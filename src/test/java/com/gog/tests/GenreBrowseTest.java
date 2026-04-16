@@ -8,6 +8,8 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import java.util.List;
+
 /**
  * GenreBrowseTest - verifies the GOG game catalog and genre-based browsing.
  *
@@ -108,5 +110,26 @@ public class GenreBrowseTest extends BaseTest {
         );
         Assert.assertTrue(titleOk || headingPresent,
             "Catalog page title or heading must reference 'GOG' or 'Game', actual title: " + title);
+    }
+
+    @Test(description = "Verify the RPG genre browse URL contains the expected 'rpg' or 'genres' query parameter")
+    public void testRpgGenreUrlParameter() {
+        driver.get(RPG_URL);
+        TestUtils.waitForPageLoad(driver);
+        String currentUrl = driver.getCurrentUrl();
+        Assert.assertTrue(
+                currentUrl.contains("rpg") || currentUrl.contains("genres"),
+                "RPG genre URL must contain 'rpg' or 'genres' parameter, actual: " + currentUrl);
+    }
+
+    @Test(description = "Verify the RPG genre listing contains more than one game tile (count-based assertion)")
+    public void testRpgGenreHasMultipleTiles() {
+        driver.get(RPG_URL);
+        TestUtils.pause(3000);
+        List<WebElement> tiles = driver.findElements(
+                By.cssSelector("[class*='product-tile'], [class*='product_tile'], "
+                        + "[class*='product-card'], [class*='productcell']"));
+        Assert.assertTrue(tiles.size() > 1,
+                "RPG genre must have more than 1 game tile, actual count: " + tiles.size());
     }
 }

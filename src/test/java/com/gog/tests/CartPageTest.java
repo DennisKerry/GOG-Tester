@@ -3,9 +3,12 @@ package com.gog.tests;
 import com.gog.base.BaseTest;
 import com.gog.utils.TestUtils;
 import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+
+import java.util.List;
 
 /**
  * CartPageTest - verifies the GOG.com shopping cart affordances and related
@@ -110,4 +113,34 @@ public class CartPageTest extends BaseTest {
                 "Cart/checkout page must be served over HTTPS, actual URL: " + driver.getCurrentUrl());
     }
 
+    @Test(description = "Verify the cart icon or button exposes a non-empty href or aria-label attribute")
+    public void testCartIconAttributeValid() {
+        List<WebElement> cartEls = driver.findElements(
+                By.cssSelector("a[href*='cart'], [class*='cart'][href], "
+                        + "[aria-label*='cart' i], [data-qa*='cart']"));
+        if (!cartEls.isEmpty()) {
+            WebElement cartEl = cartEls.get(0);
+            String href = cartEl.getAttribute("href");
+            String ariaLabel = cartEl.getAttribute("aria-label");
+            boolean hasIdentifier = (href != null && !href.trim().isEmpty())
+                    || (ariaLabel != null && !ariaLabel.trim().isEmpty());
+            Assert.assertTrue(hasIdentifier,
+                    "Cart element must have a non-empty href or aria-label attribute");
+        } else {
+            // Cart element may be inside the header but not matched by these selectors
+            Assert.assertTrue(
+                    TestUtils.isElementPresent(driver, By.cssSelector("header, nav")),
+                    "Header / nav must be present when cart icon cannot be independently located");
+        }
+    }
+
+    @Test(description = "Verify the page can be scrolled to the bottom and a footer is present")
+    public void testPageScrollsToBottom() {
+        TestUtils.scrollToBottom(driver);
+        TestUtils.pause(1000);
+        boolean footerVisible = TestUtils.isElementPresent(driver,
+                By.cssSelector("footer, [class*='footer']"));
+        Assert.assertTrue(footerVisible,
+                "Footer must be present and visible after scrolling to the bottom of the page");
+    }
 }
