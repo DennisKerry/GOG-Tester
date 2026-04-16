@@ -6,11 +6,13 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.io.File;
+import java.time.Duration;
 import java.util.List;
 
 /**
@@ -36,28 +38,30 @@ public class GamePageTest extends BaseTest {
          * Navigate to the game page once and dismiss the mature-content age gate
          * so subsequent tests don't stall waiting for blocked content.
          */
-        @BeforeClass
-        public void dismissAgeGate() {
-                driver.get(GAME_URL);
-                TestUtils.waitForPageLoad(driver);
-                // Click any age-gate confirmation button ("Enter", "I'm 18+", "Confirm", etc.)
+        /**
+         * Dismiss the GOG mature-content age gate if it is present on the current page.
+         */
+        private void dismissAgeGateIfPresent() {
+                // Fast pre-check: if no age-gate element is in the DOM at all, return immediately
+                // (avoids the 20-second wait.until timeout on every non-gated page load)
+                if (driver.findElements(By.cssSelector("[class*='age-gate']")).isEmpty()) return;
                 try {
-                        WebElement ageBtn = wait.until(
-                                        ExpectedConditions.elementToBeClickable(
-                                                        By.xpath("//button[contains(translate(normalize-space(text()),"
-                                                                        + "'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),"
-                                                                        + "'enter') or contains(translate(normalize-space(text()),"
-                                                                        + "'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),"
-                                                                        + "'confirm') or contains(translate(normalize-space(text()),"
-                                                                        + "'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),"
-                                                                        + "'18') or contains(translate(normalize-space(text()),"
-                                                                        + "'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),"
-                                                                        + "'yes')]")));
+                        WebElement ageBtn = new WebDriverWait(driver, Duration.ofSeconds(5))
+                                        .until(ExpectedConditions.elementToBeClickable(
+                                                        By.cssSelector("button.age-gate__button, button[class*='age-gate']")));
                         ((JavascriptExecutor) driver).executeScript("arguments[0].click();", ageBtn);
+                        TestUtils.waitForPageLoad(driver);
                         TestUtils.pause(800);
                 } catch (Exception ignored) {
-                        // No age gate present â€” continue
+                        // Age gate present but could not click - continue
                 }
+        }
+
+        @BeforeClass
+        public void setupGamePage() {
+                driver.get(GAME_URL);
+                TestUtils.waitForPageLoad(driver);
+                dismissAgeGateIfPresent();
                 TestUtils.dismissCookieConsent(driver);
         }
 
@@ -65,6 +69,7 @@ public class GamePageTest extends BaseTest {
         public void testGamePageLoads() {
                 driver.get(GAME_URL);
                 TestUtils.waitForPageLoad(driver);
+                dismissAgeGateIfPresent();
                 Assert.assertTrue(
                                 driver.getCurrentUrl().contains("gog.com"),
                                 "Game page must be on gog.com, actual URL: " + driver.getCurrentUrl());
@@ -73,6 +78,7 @@ public class GamePageTest extends BaseTest {
         @Test(description = "Verify the game title heading is displayed on the product page")
         public void testGameTitlePresent() {
                 driver.get(GAME_URL);
+                dismissAgeGateIfPresent();
                 TestUtils.pause(800);
                 // Use visibilityOfElementLocated so we wait for the React-rendered h1 to be
                 // fully painted; then read textContent (more reliable than getText() for SPAs).
@@ -90,6 +96,7 @@ public class GamePageTest extends BaseTest {
         @Test(description = "Verify a Buy or Add-to-Cart button is present on the game page")
         public void testBuyButtonPresent() {
                 driver.get(GAME_URL);
+                dismissAgeGateIfPresent();
                 TestUtils.pause(800);
                 boolean buyPresent = TestUtils.isElementPresent(driver,
                                 By.cssSelector("[class*='buy-btn'], [class*='buyBtn'], "
@@ -108,6 +115,7 @@ public class GamePageTest extends BaseTest {
         @Test(description = "Verify the game description or overview section is present")
         public void testGameDescriptionPresent() {
                 driver.get(GAME_URL);
+                dismissAgeGateIfPresent();
                 TestUtils.pause(800);
                 boolean descPresent = TestUtils.isElementPresent(driver,
                                 By.cssSelector("[class*='description'], [class*='overview'], [class*='about']"))
@@ -121,6 +129,7 @@ public class GamePageTest extends BaseTest {
         @Test(description = "Verify at least one screenshot or media image is present on the game page")
         public void testGameScreenshotsPresent() {
                 driver.get(GAME_URL);
+                dismissAgeGateIfPresent();
                 TestUtils.pause(1500); // allow lazy-loaded screenshots to render
                 boolean mediaPresent = TestUtils.isElementPresent(driver,
                                 By.cssSelector("[class*='screenshot'], [class*='gallery'], "
@@ -135,6 +144,7 @@ public class GamePageTest extends BaseTest {
         @Test(description = "Verify the system requirements section is present on the game page")
         public void testSystemRequirementsPresent() {
                 driver.get(GAME_URL);
+                dismissAgeGateIfPresent();
                 TestUtils.pause(800);
                 boolean sysReqPresent = TestUtils.isElementPresent(driver,
                                 By.xpath("//*[contains(translate(text(),'ABCDEFGHIJKLMNOPQRSTUVWXYZ',"
@@ -153,6 +163,7 @@ public class GamePageTest extends BaseTest {
         public void testGamePageIsHttps() {
                 driver.get(GAME_URL);
                 TestUtils.waitForPageLoad(driver);
+                dismissAgeGateIfPresent();
                 Assert.assertTrue(
                                 driver.getCurrentUrl().startsWith("https://"),
                                 "Game page must be served over HTTPS");
@@ -162,6 +173,7 @@ public class GamePageTest extends BaseTest {
         public void testGamePageScreenshot() {
                 driver.get(GAME_URL);
                 TestUtils.waitForPageLoad(driver);
+                dismissAgeGateIfPresent();
                 TestUtils.pause(800);
                 File screenshot = TestUtils.takeScreenshot(driver, "game_page_witcher3");
                 Assert.assertNotNull(screenshot, "Screenshot must be captured from the game product page");
@@ -173,6 +185,7 @@ public class GamePageTest extends BaseTest {
         @Test(description = "Verify the game price or ownership indicator displays non-empty text")
         public void testGamePriceOrOwnershipPresent() {
                 driver.get(GAME_URL);
+                dismissAgeGateIfPresent();
                 TestUtils.pause(1500);
                 List<WebElement> priceEls = driver.findElements(
                                 By.cssSelector("[class*='price'], [class*='buy__price'], [class*='buyBtn']"));
@@ -195,6 +208,7 @@ public class GamePageTest extends BaseTest {
         @Test(description = "Verify system requirements section can be scrolled into view on the game page")
         public void testSystemRequirementsScrollable() {
                 driver.get(GAME_URL);
+                dismissAgeGateIfPresent();
                 TestUtils.pause(800);
                 By sysReqSel = By.xpath("//*[contains(translate(text(),'ABCDEFGHIJKLMNOPQRSTUVWXYZ',"
                                 + "'abcdefghijklmnopqrstuvwxyz'),'system req')"
