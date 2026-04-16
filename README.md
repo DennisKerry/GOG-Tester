@@ -3,7 +3,7 @@
 ## CEN 4072 – Software Testing | Spring 2026 | Group 15
 
 **Team Members:** Robert Benstine · Dennis Kerry · Myles Vinal  
-**Instructor:** _(Course Instructor)_  
+**Instructor:** Deepa Devasenapathy  
 **System Under Test:** [GOG.com](https://www.gog.com) (web)
 
 ---
