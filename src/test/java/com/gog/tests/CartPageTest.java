@@ -138,9 +138,9 @@ public class CartPageTest extends BaseTest {
                                         "Cart element must have a non-empty href, aria-label, data-cy, or hook-test attribute");
                 } else {
                         // Cart element not found — assert menu is still accessible
-                        Assert.assertTrue(
-                                        TestUtils.isElementPresent(driver, By.cssSelector("[class*='menu__'], [class*='menu-item']"))
-                                        || TestUtils.isElementPresent(driver, By.cssSelector("[class*='header__']"))),
+                        boolean menuPresent = TestUtils.isElementPresent(driver,
+                                        By.cssSelector("[class*='menu__'], [class*='menu-item'], [class*='header__']"));
+                        Assert.assertTrue(menuPresent,
                                         "Menu / header must be present when cart icon cannot be independently located");
                 }
         }

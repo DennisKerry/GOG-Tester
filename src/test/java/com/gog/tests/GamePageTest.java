@@ -179,8 +179,14 @@ public class GamePageTest extends BaseTest {
                 if (!sysReqEls.isEmpty()) {
                         TestUtils.scrollIntoView(driver, sysReqEls.get(0));
                         TestUtils.pause(500);
-                        Assert.assertTrue(sysReqEls.get(0).isDisplayed(),
-                                        "System requirements section must be visible after scrolling into view");
+                        // Use JS to check visibility — isDisplayed() can return false for
+                        // elements that are technically rendered but off-screen before scroll settles
+                        Boolean visible = (Boolean) ((org.openqa.selenium.JavascriptExecutor) driver)
+                                        .executeScript("var r = arguments[0].getBoundingClientRect();"
+                                                        + "return r.top < window.innerHeight && r.bottom > 0;",
+                                                        sysReqEls.get(0));
+                        Assert.assertTrue(Boolean.TRUE.equals(visible),
+                                        "System requirements section must be in the viewport after scrolling into view");
                 } else {
                         // Element not present — scroll to bottom as a fallback scroll assertion
                         TestUtils.scrollToBottom(driver);
