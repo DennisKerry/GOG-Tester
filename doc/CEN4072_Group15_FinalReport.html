@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  body { font-family: Calibri, Arial, sans-serif; font-size: 12pt; margin: 1in; color: #000; }
+  h1 { font-size: 18pt; font-weight: bold; text-align: center; }
+  h2 { font-size: 14pt; font-weight: bold; border-bottom: 1px solid #000; margin-top: 24pt; }
+  h3 { font-size: 12pt; font-weight: bold; margin-top: 14pt; }
+  p { margin: 6pt 0; line-height: 1.5; }
+  table { border-collapse: collapse; width: 100%; margin: 10pt 0; }
+  th { background: #1a1a2e; color: #fff; padding: 6pt 8pt; text-align: left; font-size: 11pt; }
+  td { border: 1px solid #ccc; padding: 5pt 8pt; font-size: 11pt; vertical-align: top; }
+  tr:nth-child(even) td { background: #f5f5f5; }
+  .center { text-align: center; }
+  .title-block { text-align: center; margin: 40pt 0; }
+  .title-block h1 { font-size: 22pt; margin-bottom: 8pt; }
+  .title-block p { font-size: 13pt; margin: 4pt 0; }
+  ul { margin: 4pt 0; padding-left: 20pt; }
+  li { margin: 3pt 0; }
+  .code { font-family: Consolas, monospace; font-size: 10pt; background: #f0f0f0; padding: 2pt 4pt; }
+  .page-break { page-break-before: always; }
+  .note { font-style: italic; color: #555; font-size: 11pt; }
+</style>
+</head>
+<body>
+
+<!-- ============================================================ -->
+<!--  SECTION 1 – PROJECT DESCRIPTION                             -->
+<!-- ============================================================ -->
+
+<div class="title-block">
+  <h1>Automated End-to-End Testing of GOG.com</h1>
+  <p><strong>Project Title:</strong> Automated End-to-End Testing of GOG.com</p>
+  <p><strong>Instructor Name:</strong> [Instructor Name]</p>
+  <p><strong>Course Name &amp; Code:</strong> CEN 4072 – Software Testing, Spring 2026</p>
+  <p><strong>Group Number:</strong> Group 15</p>
+  <p><strong>Team Members:</strong> Robert Benstine &nbsp;|&nbsp; Dennis Kerry &nbsp;|&nbsp; Myles Vinal</p>
+  <br>
+  <p class="note">Code archive is attached to this report submission.</p>
+</div>
+
+<div class="page-break"></div>
+
+<h2>1.2 Project Goal</h2>
+<p>
+The objective of this project is to design and implement a comprehensive automated end-to-end test suite
+for <strong>GOG.com</strong>, a major DRM-free PC gaming platform operated by CD Projekt. The suite
+validates the core user-facing functionality of the site — browsing, searching, authentication, account
+creation, game pages, genre discovery, and cart/checkout — through 51 automated test cases organized
+across 8 independent test classes.
+</p>
+<p>
+By automating these tests, the team aims to:
+</p>
+<ul>
+  <li>Detect regressions in critical user flows (login, search, checkout) before they reach end users.</li>
+  <li>Verify that GOG's Angular Single Page Application renders required UI elements correctly across sessions.</li>
+  <li>Demonstrate the application of Selenium WebDriver with TestNG in a real-world, production environment.</li>
+  <li>Practice handling automation challenges such as Angular/React SPAs, GDPR consent modals, dynamic elements, and bot-detection headers.</li>
+</ul>
+
+<h2>1.3 System &amp; Test Summary</h2>
+<h3>System Under Test</h3>
+<p>
+<strong>GOG.com</strong> (Good Old Games, <span class="code">https://www.gog.com</span>) is a global
+digital game distribution platform with a catalog of over 6,000 DRM-free titles. The site is built on
+a React/Angular hybrid architecture with a dedicated authentication subdomain
+(<span class="code">login.gog.com</span>) powered by Angular.
+</p>
+
+<h3>Test Classification</h3>
+<p>
+All tests are <strong>System / End-to-End</strong> tests: each test class exercises a specific page or
+feature area of the GOG.com production site using a real Chrome browser controlled by Selenium WebDriver.
+The full suite is integrated via <span class="code">testng.xml</span>, making it a combined integration
+run of all 8 modules.
+</p>
+
+<h3>Test Suite Overview</h3>
+<table>
+  <tr>
+    <th>Test Class</th>
+    <th>Area Tested</th>
+    <th>Methods</th>
+    <th>Result</th>
+  </tr>
+  <tr><td>HomePageTest</td><td>GOG homepage structure, header, logo, footer, HTTPS</td><td>7</td><td>7/7 ✓</td></tr>
+  <tr><td>LoginPageTest</td><td>GOG auth page: email trigger, password, forgot password, create account</td><td>7</td><td>7/7 ✓</td></tr>
+  <tr><td>SignupPageTest</td><td>GOG auth page: signup entry point, Create Account link, Terms link</td><td>7</td><td>7/7 ✓</td></tr>
+  <tr><td>SearchTest</td><td>Search input, results page, game tiles, images, sort/filter</td><td>6</td><td>6/6 ✓</td></tr>
+  <tr><td>NavigationTest</td><td>Logo link, header nav links, Sign In button, catalog navigation</td><td>6</td><td>6/6 ✓</td></tr>
+  <tr><td>GamePageTest</td><td>The Witcher 3 product page: title, buy button, description, screenshots</td><td>7</td><td>7/7 ✓</td></tr>
+  <tr><td>GenreBrowseTest</td><td>All games catalog, RPG genre filter, game tiles, cover images</td><td>6</td><td>6/6 ✓</td></tr>
+  <tr><td>CartPageTest</td><td>Cart/checkout page: content, header, navigation, HTTPS</td><td>7</td><td>7/7 ✓</td></tr>
+  <tr><td><strong>Total</strong></td><td></td><td><strong>51</strong></td><td><strong>51/51 ✓</strong></td></tr>
+</table>
+
+<h3>Test Design Approach</h3>
+<p>
+Each test class extends a shared <span class="code">BaseTest</span> class that initializes and tears down
+ChromeDriver once per class. A <span class="code">@BeforeMethod</span> in each class navigates to the
+relevant page before every test. Tests use CSS selectors, XPath, and
+<span class="code">WebDriverWait</span> with a 20-second timeout. Shared helpers (cookie consent
+dismissal, page-load wait, element presence check) are centralized in <span class="code">TestUtils</span>.
+</p>
+
+<h2>1.4 Workflow Diagram</h2>
+<p>
+The testing workflow follows the pipeline below:
+</p>
+
+<table>
+  <tr>
+    <th>Step</th>
+    <th>Activity</th>
+  </tr>
+  <tr><td>1. Test Trigger</td><td><span class="code">mvn test</span> or <span class="code">testng.xml</span> run via Maven Surefire Plugin</td></tr>
+  <tr><td>2. WebDriverManager</td><td>Automatically downloads the matching ChromeDriver binary</td></tr>
+  <tr><td>3. BaseTest.setUp()</td><td>Launches headful Chrome with anti-bot flags (<span class="code">--disable-blink-features=AutomationControlled</span>)</td></tr>
+  <tr><td>4. @BeforeMethod</td><td>Navigates to the target URL; dismisses GDPR cookie consent</td></tr>
+  <tr><td>5. Test Execution</td><td>Each @Test method queries the DOM, asserts element presence / attribute values</td></tr>
+  <tr><td>6. @AfterClass</td><td>Calls <span class="code">driver.quit()</span> to close the browser</td></tr>
+  <tr><td>7. Surefire Reports</td><td>XML + HTML reports written to <span class="code">target/surefire-reports/</span></td></tr>
+  <tr><td>8. CI / Git</td><td>All source committed to GitHub: https://github.com/DennisKerry/GOG-Tester</td></tr>
+</table>
+
+<h2>1.5 Code Repository &amp; Submission</h2>
+<p><strong>GitHub Repository:</strong> <a href="https://github.com/DennisKerry/GOG-Tester">https://github.com/DennisKerry/GOG-Tester</a></p>
+<p>Code archive is attached to this report submission.</p>
+
+<div class="page-break"></div>
+
+<!-- ============================================================ -->
+<!--  SECTION 2 – WORK CONDUCTED                                  -->
+<!-- ============================================================ -->
+
+<h2>2. Work Conducted</h2>
+
+<h3>2.1 Overview of Work</h3>
+<h3>Test Planning</h3>
+<p>
+The team selected GOG.com as the system under test because it is a publicly accessible, feature-rich
+e-commerce platform with documented automation challenges: an Angular SPA authentication layer,
+a React-based storefront, aggressive bot-detection headers, and a GDPR consent modal on first visit.
+The team identified 8 functional areas to test and mapped each to a test class.
+</p>
+
+<h3>Test Development</h3>
+<p>
+Each test class was authored in Java using Selenium WebDriver 4.18.1 and TestNG 7.9.0.
+Key challenges addressed during development:
+</p>
+<ul>
+  <li><strong>Angular SPA (login.gog.com):</strong> The auth page is served as an Angular application.
+  Direct DOM clicks on form triggers do not fire Angular zone.js change detection, so tests were designed
+  to verify element <em>presence</em> and <em>accessibility</em> rather than form submission.</li>
+  <li><strong>React-rendered text:</strong> <span class="code">WebElement.getText()</span> returns empty
+  strings for React-rendered elements in some page configurations. Solution: use
+  <span class="code">getAttribute("textContent")</span> and
+  <span class="code">visibilityOfElementLocated</span>.</li>
+  <li><strong>Cart subdomain DNS:</strong> <span class="code">cart.gog.com</span> does not resolve
+  reliably in automated environments. Solution: navigate dynamically from <span class="code">www.gog.com</span>
+  via a header link in <span class="code">@BeforeMethod</span>.</li>
+  <li><strong>Cookie consent interception:</strong> GOG's GDPR banner overlaps clickable elements.
+  <span class="code">TestUtils.dismissCookieConsent()</span> dismisses it first using a JavaScript click
+  fallback when the standard Selenium click is intercepted.</li>
+  <li><strong>UTF-8 BOM:</strong> All source files were stripped of the UTF-8 BOM (0xEF 0xBB 0xBF)
+  that the original editor introduced, which caused <span class="code">javac</span> compilation errors.</li>
+</ul>
+
+<h3>Integration of Test Classes</h3>
+<p>
+All 8 test classes are integrated in <span class="code">testng.xml</span>, which defines the suite name
+"GOG Selenium Test Suite" and runs each class as a separate named test in sequence with
+<span class="code">parallel="none"</span>. The full suite runs in approximately 15–20 minutes.
+</p>
+
+<h3>Execution and Reporting</h3>
+<p>
+Tests are executed via <span class="code">mvn test</span>. Maven Surefire Plugin 3.2.5 generates
+per-class XML reports in <span class="code">target/surefire-reports/</span>.
+Final result: <strong>51 tests run, 0 failures, 0 errors, 0 skipped.</strong>
+</p>
+
+<h3>2.2 Individual Contributions</h3>
+<table>
+  <tr>
+    <th>Team Member</th>
+    <th>Contributions</th>
+  </tr>
+  <tr>
+    <td><strong>Robert Benstine</strong></td>
+    <td>
+      Authored HomePageTest and NavigationTest; configured testng.xml integration suite;
+      contributed to BaseTest and TestUtils shared infrastructure; report writing.
+    </td>
+  </tr>
+  <tr>
+    <td><strong>Dennis Kerry</strong></td>
+    <td>
+      Authored LoginPageTest and SignupPageTest (including Angular SPA workarounds);
+      authored CartPageTest (dynamic cart navigation fix); resolved UTF-8 BOM compilation errors;
+      GitHub repository setup and maintenance; debugging and final test fixes.
+    </td>
+  </tr>
+  <tr>
+    <td><strong>Myles Vinal</strong></td>
+    <td>
+      Authored SearchTest, GamePageTest, and GenreBrowseTest; implemented React text content
+      workaround using <span class="code">getAttribute("textContent")</span>;
+      PowerPoint presentation authoring; report writing.
+    </td>
+  </tr>
+</table>
+
+<div class="page-break"></div>
+
+<!-- ============================================================ -->
+<!--  SECTION 3 – TOOLS USED                                      -->
+<!-- ============================================================ -->
+
+<h2>3. Tools Used</h2>
+<table>
+  <tr>
+    <th>Tool / Technology</th>
+    <th>Version</th>
+    <th>Purpose</th>
+  </tr>
+  <tr><td>Java (JDK)</td><td>25.0.2 (LTS)</td><td>Primary programming language for all test code</td></tr>
+  <tr><td>Selenium WebDriver</td><td>4.18.1</td><td>Browser automation – finding elements, clicking, asserting</td></tr>
+  <tr><td>TestNG</td><td>7.9.0</td><td>Test framework – annotations, assertions, suite runner</td></tr>
+  <tr><td>Apache Maven</td><td>3.9.12</td><td>Build tool and dependency manager; runs tests via Surefire 3.2.5</td></tr>
+  <tr><td>WebDriverManager (bonigarcia)</td><td>5.7.0</td><td>Automatically downloads the correct ChromeDriver binary</td></tr>
+  <tr><td>Google Chrome</td><td>147.0.7727.56</td><td>Browser under test</td></tr>
+  <tr><td>ChromeDriver</td><td>147.0.7727.56</td><td>WebDriver implementation for Chrome</td></tr>
+  <tr><td>Git / GitHub</td><td>—</td><td>Version control and code hosting</td></tr>
+  <tr><td>Windows 11</td><td>—</td><td>Operating system used for test execution</td></tr>
+  <tr><td>IntelliJ IDEA / VS Code</td><td>—</td><td>IDE used for development</td></tr>
+</table>
+
+<div class="page-break"></div>
+
+<!-- ============================================================ -->
+<!--  SECTION 4 – MOTIVATION                                      -->
+<!-- ============================================================ -->
+
+<h2>4. Motivation</h2>
+<p>
+GOG.com serves millions of users globally. Regressions in core flows — login, search, or checkout —
+can directly impact revenue and user trust. Manual testing at scale is slow and error-prone;
+an automated suite provides repeatable, objective verification of critical functionality.
+</p>
+<p>
+<strong>Issues our tests help prevent or uncover:</strong>
+</p>
+<ul>
+  <li><strong>Broken authentication:</strong> LoginPageTest verifies the sign-in trigger, forgot
+  password link, and create account link are accessible. If a frontend deployment broke any of
+  these, the test would immediately flag it.</li>
+  <li><strong>Search regressions:</strong> SearchTest confirms that search returns game tiles with
+  titles and cover images. A broken search would be caught before users encounter empty results.</li>
+  <li><strong>Cart/checkout unavailability:</strong> CartPageTest verifies the cart page loads with
+  proper navigation and HTTPS. Any misconfiguration of the cart subdomain would be detected.</li>
+  <li><strong>Game page content missing:</strong> GamePageTest checks that the buy button,
+  description, screenshots, and system requirements are all rendered. Missing sections would
+  be caught automatically.</li>
+  <li><strong>Navigation broken:</strong> NavigationTest verifies the GOG logo link, store navigation,
+  and header persistence across pages.</li>
+</ul>
+<p>
+<strong>How the suite improves system quality:</strong>
+The tests serve as a regression safety net. After any GOG frontend update, running
+<span class="code">mvn test</span> produces a pass/fail report for all 51 test cases within
+20 minutes — far faster than manual verification. The suite also documents the <em>expected</em>
+behavior of each page, serving as executable specifications.
+</p>
+
+<div class="page-break"></div>
+
+<!-- ============================================================ -->
+<!--  SECTION 5 – APPENDIX                                        -->
+<!-- ============================================================ -->
+
+<h2>5. Appendix</h2>
+
+<h3>Appendix A – Test Class Details</h3>
+
+<h3>HomePageTest (7 tests)</h3>
+<ul>
+  <li>Verify the GOG home page title contains 'GOG'</li>
+  <li>Verify a header element is present on the GOG home page</li>
+  <li>Verify the GOG logo or brand link is present in the header</li>
+  <li>Verify at least one game product tile is rendered on the home page</li>
+  <li>Verify a Sign In link or button is accessible from the home page</li>
+  <li>Verify a footer is rendered on the GOG home page</li>
+  <li>Verify the GOG home page is served over HTTPS</li>
+</ul>
+
+<h3>LoginPageTest (7 tests)</h3>
+<ul>
+  <li>Verify the GOG login page title contains 'GOG'</li>
+  <li>Verify an email login option is available (input field or LOG IN NOW trigger)</li>
+  <li>Verify a password field or social-login alternative is on the login page</li>
+  <li>Verify a sign-in action button or LOG IN NOW trigger is present</li>
+  <li>Verify a Forgot Password link is present on the login page</li>
+  <li>Verify a Create Account / Sign Up link is present on the login page</li>
+  <li>Verify GOG login page enforces HTTPS and serves from the auth domain</li>
+</ul>
+
+<h3>SignupPageTest (7 tests)</h3>
+<ul>
+  <li>Verify the GOG auth page loads and is on the gog.com domain</li>
+  <li>Verify an email input or login trigger is present</li>
+  <li>Verify a password input or alternative auth option is present</li>
+  <li>Verify a Create Account option is accessible from the auth page</li>
+  <li>Verify a Create Account button or link is visible</li>
+  <li>Verify a Sign In option is present for users who already have an account</li>
+  <li>Verify a Privacy Policy or Terms link is accessible</li>
+</ul>
+
+<h3>SearchTest (6 tests)</h3>
+<ul>
+  <li>Verify a search icon or input is present in the GOG header</li>
+  <li>Verify the search results page loads when a query is provided</li>
+  <li>Verify searching 'witcher' returns at least one game tile</li>
+  <li>Verify search result tiles contain a visible game title</li>
+  <li>Verify search result tiles contain cover images</li>
+  <li>Verify sort or filter options are available on the search results page</li>
+</ul>
+
+<h3>NavigationTest (6 tests)</h3>
+<ul>
+  <li>Verify the GOG logo navigates back to the home page</li>
+  <li>Verify a Store or Games navigation link is present in the header</li>
+  <li>Verify the Sign In button is present in the header</li>
+  <li>Verify navigating to the /games catalog page stays on gog.com</li>
+  <li>Verify the header persists on both the home and games catalog pages</li>
+  <li>Verify a wishlist or cart icon is accessible in the header</li>
+</ul>
+
+<h3>GamePageTest (7 tests)</h3>
+<ul>
+  <li>Verify the Witcher 3 game page loads on gog.com</li>
+  <li>Verify the game title heading is displayed on the product page</li>
+  <li>Verify a Buy or Add-to-Cart button is present on the game page</li>
+  <li>Verify the game description or overview section is present</li>
+  <li>Verify at least one screenshot or media image is present on the game page</li>
+  <li>Verify the system requirements section is present on the game page</li>
+  <li>Verify the game page is served over HTTPS</li>
+</ul>
+
+<h3>GenreBrowseTest (6 tests)</h3>
+<ul>
+  <li>Verify the GOG games catalog page loads and stays on gog.com</li>
+  <li>Verify the RPG genre browse page loads and stays on gog.com</li>
+  <li>Verify game product tiles are rendered in the RPG genre listing</li>
+  <li>Verify game tile cover images are present in the genre listing</li>
+  <li>Verify sort or filter controls are present on the catalog page</li>
+  <li>Verify the catalog page title or heading references Games or GOG</li>
+</ul>
+
+<h3>CartPageTest (7 tests)</h3>
+<ul>
+  <li>Verify GOG cart/checkout page loads and URL stays on gog.com</li>
+  <li>Verify the GOG cart/checkout page has a non-empty page title</li>
+  <li>Verify the cart/checkout page renders a main content area</li>
+  <li>Verify the page shows cart-related content or a sign-in prompt</li>
+  <li>Verify a navigation link back to the GOG store is accessible</li>
+  <li>Verify GOG header or navigation is accessible from the cart/checkout page</li>
+  <li>Verify the cart/checkout page is served over HTTPS</li>
+</ul>
+
+<h3>Appendix B – Automation Constraints &amp; Solutions</h3>
+<table>
+  <tr>
+    <th>Constraint</th>
+    <th>Solution Applied</th>
+  </tr>
+  <tr>
+    <td>Angular SPA (login.gog.com) – forms not revealed by DOM click</td>
+    <td>Tests verify the trigger element presence rather than form interaction; JavaScript click used to avoid Angular routing issues</td>
+  </tr>
+  <tr>
+    <td>React-rendered text – getText() returns empty string</td>
+    <td>Used getAttribute("textContent") and visibilityOfElementLocated()</td>
+  </tr>
+  <tr>
+    <td>cart.gog.com DNS not resolving in automated environment</td>
+    <td>Navigate to cart dynamically from www.gog.com via header link in @BeforeMethod</td>
+  </tr>
+  <tr>
+    <td>GDPR cookie consent modal intercepts clicks</td>
+    <td>TestUtils.dismissCookieConsent() dismisses with JS click fallback on ElementClickInterceptedException</td>
+  </tr>
+  <tr>
+    <td>GOG bot-detection headers</td>
+    <td>ChromeOptions: --disable-blink-features=AutomationControlled; excludeSwitches: enable-automation; useAutomationExtension: false</td>
+  </tr>
+  <tr>
+    <td>signup URL (login.gog.com/signup) returns HTTP 404</td>
+    <td>SignupPageTest navigates to login.gog.com/login where the Create Account link is accessible</td>
+  </tr>
+  <tr>
+    <td>UTF-8 BOM in source files causing javac errors</td>
+    <td>Stripped BOM bytes (0xEF 0xBB 0xBF) from all 11 Java files via PowerShell byte manipulation</td>
+  </tr>
+</table>
+
+<h3>Appendix C – Project Structure</h3>
+<pre style="font-family:Consolas,monospace; font-size:10pt; background:#f0f0f0; padding:10pt;">
+src/test/java/com/gog/
+├── base/
+│   ├── BaseTest.java          (ChromeDriver setup/teardown, 20s WebDriverWait)
+│   └── AuthenticatedTest.java (extends BaseTest, performs login before tests)
+├── tests/
+│   ├── HomePageTest.java
+│   ├── LoginPageTest.java
+│   ├── SignupPageTest.java
+│   ├── SearchTest.java
+│   ├── NavigationTest.java
+│   ├── GamePageTest.java
+│   ├── GenreBrowseTest.java
+│   └── CartPageTest.java
+└── utils/
+    └── TestUtils.java         (dismissCookieConsent, performLogin, waitForPageLoad, isElementPresent, pause)
+
+testng.xml                     (full suite integration – 8 test nodes, parallel=none)
+pom.xml                        (Maven build, Selenium 4.18.1, TestNG 7.9.0, Surefire 3.2.5)
+</pre>
+
+<h3>Appendix D – GitHub Repository</h3>
+<p><strong>URL:</strong> <a href="https://github.com/DennisKerry/GOG-Tester">https://github.com/DennisKerry/GOG-Tester</a></p>
+<p>The repository contains all source files, pom.xml, testng.xml, and the project documentation.</p>
+
+<h3>Appendix E – References</h3>
+<ul>
+  <li>Selenium WebDriver Documentation – <a href="https://www.selenium.dev/documentation/">https://www.selenium.dev/documentation/</a></li>
+  <li>TestNG Documentation – <a href="https://testng.org/doc/">https://testng.org/doc/</a></li>
+  <li>WebDriverManager (bonigarcia) – <a href="https://bonigarcia.dev/webdrivermanager/">https://bonigarcia.dev/webdrivermanager/</a></li>
+  <li>Apache Maven Documentation – <a href="https://maven.apache.org/guides/">https://maven.apache.org/guides/</a></li>
+  <li>GOG.com System Under Test – <a href="https://www.gog.com">https://www.gog.com</a></li>
+</ul>
+
+</body>
+</html>

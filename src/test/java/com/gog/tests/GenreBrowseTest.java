@@ -14,19 +14,20 @@ import java.util.List;
  * GenreBrowseTest - verifies the GOG game catalog and genre-based browsing.
  *
  * The RPG genre is used as the primary test target because GOG has an extensive
- * RPG library (Witcher series, Cyberpunk 2077, Baldur's Gate, etc.) guaranteeing
+ * RPG library (Witcher series, Cyberpunk 2077, Baldur's Gate, etc.)
+ * guaranteeing
  * results at all times.
  *
  * Automation constraints noted:
- *  - GOG's catalog page loads game tiles via asynchronous XHR after the initial
- *    HTML is delivered. Pause durations are applied to allow results to appear.
- *  - Filter and sort controls may be rendered inside a collapsible sidebar;
- *    tests check for element presence without requiring the sidebar to be open.
+ * - GOG's catalog page loads game tiles via asynchronous XHR after the initial
+ * HTML is delivered. Pause durations are applied to allow results to appear.
+ * - Filter and sort controls may be rendered inside a collapsible sidebar;
+ * tests check for element presence without requiring the sidebar to be open.
  */
 public class GenreBrowseTest extends BaseTest {
 
     private static final String GAMES_URL = BASE_URL + "/games";
-    private static final String RPG_URL   = BASE_URL + "/games?genres=rpg";
+    private static final String RPG_URL = BASE_URL + "/games?genres=rpg";
 
     // ------------------------------------------------------------------
     // Test methods (6 total, requirement is >= 5)
@@ -37,9 +38,8 @@ public class GenreBrowseTest extends BaseTest {
         driver.get(GAMES_URL);
         TestUtils.waitForPageLoad(driver);
         Assert.assertTrue(
-            driver.getCurrentUrl().contains("gog.com"),
-            "Games catalog must be on gog.com, actual URL: " + driver.getCurrentUrl()
-        );
+                driver.getCurrentUrl().contains("gog.com"),
+                "Games catalog must be on gog.com, actual URL: " + driver.getCurrentUrl());
     }
 
     @Test(description = "Verify the RPG genre browse page loads and stays on gog.com")
@@ -47,9 +47,8 @@ public class GenreBrowseTest extends BaseTest {
         driver.get(RPG_URL);
         TestUtils.waitForPageLoad(driver);
         Assert.assertTrue(
-            driver.getCurrentUrl().contains("gog.com"),
-            "RPG genre page must stay on gog.com, actual URL: " + driver.getCurrentUrl()
-        );
+                driver.getCurrentUrl().contains("gog.com"),
+                "RPG genre page must stay on gog.com, actual URL: " + driver.getCurrentUrl());
     }
 
     @Test(description = "Verify game product tiles are rendered in the RPG genre listing")
@@ -57,11 +56,10 @@ public class GenreBrowseTest extends BaseTest {
         driver.get(RPG_URL);
         TestUtils.pause(3000); // allow XHR tile results to render
         boolean tilesPresent = TestUtils.isElementPresent(driver,
-            By.cssSelector("[class*='product-tile'], [class*='product_tile'], "
-                         + "[class*='product-card'], [class*='productcell']")
-        );
+                By.cssSelector("[class*='product-tile'], [class*='product_tile'], "
+                        + "[class*='product-card'], [class*='productcell']"));
         Assert.assertTrue(tilesPresent,
-            "At least one product tile must appear in the RPG genre listing");
+                "At least one product tile must appear in the RPG genre listing");
     }
 
     @Test(description = "Verify game tile cover images are present in the genre listing")
@@ -69,13 +67,12 @@ public class GenreBrowseTest extends BaseTest {
         driver.get(RPG_URL);
         TestUtils.pause(3000);
         boolean imagesPresent = TestUtils.isElementPresent(driver,
-            By.cssSelector("[class*='product-tile'] img, [class*='product_tile'] img, "
-                         + "[class*='product-card'] img, [class*='productcell'] img")
-        ) || TestUtils.isElementPresent(driver,
-            By.xpath("//*[contains(@class,'product') and @href]//img")
-        );
+                By.cssSelector("[class*='product-tile'] img, [class*='product_tile'] img, "
+                        + "[class*='product-card'] img, [class*='productcell'] img"))
+                || TestUtils.isElementPresent(driver,
+                        By.xpath("//*[contains(@class,'product') and @href]//img"));
         Assert.assertTrue(imagesPresent,
-            "Game tile cover images must be present in the genre listing");
+                "Game tile cover images must be present in the genre listing");
     }
 
     @Test(description = "Verify sort or filter controls are present on the catalog page")
@@ -83,18 +80,17 @@ public class GenreBrowseTest extends BaseTest {
         driver.get(GAMES_URL);
         TestUtils.waitForPageLoad(driver);
         boolean controlsPresent = TestUtils.isElementPresent(driver,
-            By.xpath("//*[contains(translate(text(),'ABCDEFGHIJKLMNOPQRSTUVWXYZ',"
-                   + "'abcdefghijklmnopqrstuvwxyz'),'sort')"
-                   + " or contains(translate(text(),'ABCDEFGHIJKLMNOPQRSTUVWXYZ',"
-                   + "'abcdefghijklmnopqrstuvwxyz'),'filter')"
-                   + " or contains(translate(@class,'ABCDEFGHIJKLMNOPQRSTUVWXYZ',"
-                   + "'abcdefghijklmnopqrstuvwxyz'),'filter')"
-                   + " or contains(translate(@class,'ABCDEFGHIJKLMNOPQRSTUVWXYZ',"
-                   + "'abcdefghijklmnopqrstuvwxyz'),'sort')]"
-                   + "[not(ancestor::footer)]")
-        );
+                By.xpath("//*[contains(translate(text(),'ABCDEFGHIJKLMNOPQRSTUVWXYZ',"
+                        + "'abcdefghijklmnopqrstuvwxyz'),'sort')"
+                        + " or contains(translate(text(),'ABCDEFGHIJKLMNOPQRSTUVWXYZ',"
+                        + "'abcdefghijklmnopqrstuvwxyz'),'filter')"
+                        + " or contains(translate(@class,'ABCDEFGHIJKLMNOPQRSTUVWXYZ',"
+                        + "'abcdefghijklmnopqrstuvwxyz'),'filter')"
+                        + " or contains(translate(@class,'ABCDEFGHIJKLMNOPQRSTUVWXYZ',"
+                        + "'abcdefghijklmnopqrstuvwxyz'),'sort')]"
+                        + "[not(ancestor::footer)]"));
         Assert.assertTrue(controlsPresent,
-            "Sort or filter controls must be visible on the games catalog page");
+                "Sort or filter controls must be visible on the games catalog page");
     }
 
     @Test(description = "Verify the catalog page title or heading references Games or GOG")
@@ -103,13 +99,12 @@ public class GenreBrowseTest extends BaseTest {
         TestUtils.waitForPageLoad(driver);
         String title = driver.getTitle();
         boolean titleOk = title.toUpperCase().contains("GOG")
-            || title.toLowerCase().contains("game");
+                || title.toLowerCase().contains("game");
         boolean headingPresent = TestUtils.isElementPresent(driver,
-            By.xpath("//*[self::h1 or self::h2][contains(translate(text(),"
-                   + "'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),'game')]")
-        );
+                By.xpath("//*[self::h1 or self::h2][contains(translate(text(),"
+                        + "'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),'game')]"));
         Assert.assertTrue(titleOk || headingPresent,
-            "Catalog page title or heading must reference 'GOG' or 'Game', actual title: " + title);
+                "Catalog page title or heading must reference 'GOG' or 'Game', actual title: " + title);
     }
 
     @Test(description = "Verify the RPG genre browse URL contains the expected 'rpg' or 'genres' query parameter")
