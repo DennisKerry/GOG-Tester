@@ -1,4 +1,4 @@
-﻿package com.gog.tests;
+package com.gog.tests;
 
 import com.gog.base.BaseTest;
 import com.gog.utils.TestUtils;
@@ -178,14 +178,14 @@ public class LoginPageTest extends BaseTest {
 
                 driver.findElement(SUBMIT_BTN).click();
 
-                // Wait up to 20 s for redirect to www.gog.com
+                // Wait until Chrome leaves the login page — handles account.gog.com redirect
+                // too
                 try {
-                        wait.until(ExpectedConditions.urlContains("www.gog.com"));
+                        wait.until(d -> !d.getCurrentUrl().startsWith("https://login.gog.com/login"));
                 } catch (Exception ignored) {
-                        /* CAPTCHA or 2FA may have appeared */ }
-
-                TestUtils.pause(800);
+                        /* CAPTCHA or 2FA — stay on login page */ }
                 String url = driver.getCurrentUrl();
+                System.out.println("[LoginPageTest] Post-login URL: " + url);
                 Assert.assertTrue(url.contains("gog.com"),
                                 "After valid login, user must be on gog.com, actual: " + url);
         }
@@ -202,14 +202,8 @@ public class LoginPageTest extends BaseTest {
 
                 WebElement forgotLink = wait.until(
                                 ExpectedConditions.visibilityOfElementLocated(
-                                                By.xpath("//a[contains(translate(text(),"
-                                                                + "'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),'forgot')"
-                                                                + " or contains(translate(@href,"
-                                                                + "'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),'forgot')"
-                                                                + " or contains(translate(@href,"
-                                                                + "'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),'reset')"
-                                                                + " or contains(translate(@href,"
-                                                                + "'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),'password')]")));
+                                                By.cssSelector("a[href*='forgot'], a[href*='reset'], "
+                                                                + "a[href*='password'], a[href*='remind']")));
 
                 Assert.assertNotNull(forgotLink.getAttribute("href"),
                                 "Forgot Password link must have a valid href attribute");
@@ -236,13 +230,13 @@ public class LoginPageTest extends BaseTest {
 
                 WebElement createLink = wait.until(
                                 ExpectedConditions.visibilityOfElementLocated(
-                                                By.xpath("//a[contains(translate(text(),"
-                                                                + "'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),'create account')"
-                                                                + " or contains(translate(text(),"
-                                                                + "'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),'register')"
-                                                                + " or contains(translate(text(),"
-                                                                + "'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),'sign up')"
-                                                                + " or contains(@href,'register') or contains(@href,'signup')]")));
+                                                By.xpath("//a[contains(translate(normalize-space(.),"
+                                                                + "'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),"
+                                                                + "'sign up') or contains(translate(normalize-space(.),"
+                                                                + "'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),"
+                                                                + "'create account') or contains(translate(normalize-space(.),"
+                                                                + "'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),"
+                                                                + "'register')]")));
 
                 Assert.assertTrue(createLink.isDisplayed(),
                                 "Create Account link must be visible on the login page");

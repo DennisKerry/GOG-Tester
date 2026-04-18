@@ -10,6 +10,8 @@ import org.testng.annotations.BeforeClass;
 
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * BaseTest â€“ sets up and tears down the Chrome WebDriver once per test class.
@@ -27,6 +29,10 @@ public abstract class BaseTest {
 
     @BeforeClass
     public void setUp() {
+        // Suppress Selenium CDP version-mismatch warnings (Chrome 147 vs Selenium 4.18)
+        Logger.getLogger("org.openqa.selenium.devtools").setLevel(Level.OFF);
+        Logger.getLogger("org.openqa.selenium.chromium").setLevel(Level.OFF);
+        Logger.getLogger("org.openqa.selenium.remote").setLevel(Level.SEVERE);
         WebDriverManager.chromedriver().setup();
 
         ChromeOptions options = new ChromeOptions();
@@ -41,7 +47,7 @@ public abstract class BaseTest {
         options.setExperimentalOption("useAutomationExtension", false);
 
         driver = new ChromeDriver(options);
-        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
+        driver.manage().timeouts().implicitlyWait(Duration.ZERO);  // explicit waits used everywhere
         wait = new WebDriverWait(driver, TIMEOUT);
     }
 

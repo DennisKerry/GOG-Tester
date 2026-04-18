@@ -1,4 +1,4 @@
-﻿package com.gog.tests;
+package com.gog.tests;
 
 import com.gog.base.BaseTest;
 import com.gog.utils.TestUtils;
@@ -42,9 +42,11 @@ public class GamePageTest extends BaseTest {
          * Dismiss the GOG mature-content age gate if it is present on the current page.
          */
         private void dismissAgeGateIfPresent() {
-                // Fast pre-check: if no age-gate element is in the DOM at all, return immediately
+                // Fast pre-check: if no age-gate element is in the DOM at all, return
+                // immediately
                 // (avoids the 20-second wait.until timeout on every non-gated page load)
-                if (driver.findElements(By.cssSelector("[class*='age-gate']")).isEmpty()) return;
+                if (driver.findElements(By.cssSelector("[class*='age-gate']")).isEmpty())
+                        return;
                 try {
                         WebElement ageBtn = new WebDriverWait(driver, Duration.ofSeconds(5))
                                         .until(ExpectedConditions.elementToBeClickable(

@@ -33,12 +33,13 @@ public class NavigationTest extends BaseTest {
         @Test(description = "Verify the GOG logo navigates back to the home page")
         public void testLogoNavigatesHome() {
                 driver.get(BASE_URL + "/games");
+                // GOG logo is inside <nav>, not <header>; use hook-test or any nav link to home
                 WebElement logo = wait.until(
                                 ExpectedConditions.elementToBeClickable(
-                                                By.cssSelector("a.header__logo, a[class*='logo'][href], "
-                                                                + "header a[href='/'], header a[href*='gog.com/'][class*='logo']")));
+                                                By.cssSelector("a[class*='logo'], [class*='brand'] a, "
+                                                                + "nav a[href='/'], nav a[href='https://www.gog.com']")));
                 logo.click();
-                TestUtils.pause(1500);
+                TestUtils.pause(800);
                 Assert.assertTrue(
                                 driver.getCurrentUrl().contains("gog.com"),
                                 "Clicking the logo must keep the user on gog.com");

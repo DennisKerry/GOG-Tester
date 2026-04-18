@@ -1,4 +1,4 @@
-﻿package com.gog.tests;
+package com.gog.tests;
 
 import com.gog.base.BaseTest;
 import com.gog.utils.TestUtils;
@@ -35,12 +35,13 @@ public class SearchTest extends BaseTest {
         @Test(description = "Verify a search icon or input is present in the GOG header")
         public void testSearchIconPresent() {
                 driver.get(BASE_URL + "/");
+                // GOG uses hook-test="menuSearch" and hook-test="menuSearchInput" for search
                 boolean searchPresent = TestUtils.isElementPresent(driver,
-                                By.cssSelector("[class*='search'] button, [class*='search'] a, "
-                                                + "input[type='search'], [data-qa*='search']"))
+                                By.cssSelector("[hook-test='menuSearch'], [hook-test='menuSearchInput'], "
+                                                + "[class*='menu-search'], [class*='search-input']"))
                                 || TestUtils.isElementPresent(driver,
-                                                By.xpath("//*[@aria-label='Search' or @title='Search']"
-                                                                + " | //*[contains(@class,'search') and (self::button or self::a)]"));
+                                                By.xpath("//*[@hook-test='menuSearch'] | //*[@hook-test='menuSearchInput']"
+                                                                + " | //*[contains(@class,'menu-search')]"));
                 Assert.assertTrue(searchPresent,
                                 "A search icon, button, or input must be present in the GOG header");
         }

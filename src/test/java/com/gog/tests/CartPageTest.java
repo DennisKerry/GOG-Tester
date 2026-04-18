@@ -21,7 +21,7 @@ import java.util.List;
 public class CartPageTest extends BaseTest {
 
         private static final String GAME_URL = "https://www.gog.com/en/game/the_witcher_3_wild_hunt";
-        private static final String CART_URL = "https://cart.gog.com/";
+        private static final String CART_URL = "https://www.gog.com/en/cart";
 
         /**
          * Navigate to The Witcher 3, dismiss the age gate, add the game to cart,
@@ -29,59 +29,102 @@ public class CartPageTest extends BaseTest {
          */
         @BeforeClass(alwaysRun = true)
         public void addToCartAndOpenCartPage() {
+                System.out.println("[CartPageTest] Loading game page: " + GAME_URL);
                 driver.get(GAME_URL);
                 TestUtils.waitForPageLoad(driver);
                 TestUtils.dismissCookieConsent(driver);
+                System.out.println("[CartPageTest] Page loaded, title: " + driver.getTitle());
 
-                // Dismiss the mature-content age gate (fast pre-check first)
-                if (!driver.findElements(By.cssSelector("[class*='age-gate']")).isEmpty()) {
+                // ── Age gate ──────────────────────────────────────────────────────────────
+                if (!driver.findElements(By.cssSelector("[class*='age-gate'], [class*='age_gate']")).isEmpty()) {
+                        System.out.println("[CartPageTest] Age gate detected — attempting dismissal");
                         try {
-                                WebElement ageBtn = new WebDriverWait(driver, Duration.ofSeconds(5))
+                                // Find any clickable button/link inside the age-gate container
+                                WebElement ageBtn = new WebDriverWait(driver, java.time.Duration.ofSeconds(5))
                                                 .until(ExpectedConditions.elementToBeClickable(
-                                                                By.cssSelector("button.age-gate__button, button[class*='age-gate']")));
+                                                                By.cssSelector("[class*='age-gate'] button, [class*='age-gate'] a,"
+                                                                                + " [class*='age_gate'] button, [class*='age_gate'] a")));
                                 ((JavascriptExecutor) driver).executeScript("arguments[0].click();", ageBtn);
                                 TestUtils.waitForPageLoad(driver);
                                 TestUtils.pause(1000);
-                        } catch (Exception ignored) {
-                                // Could not click age gate - continue
+                                System.out.println("[CartPageTest] Age gate dismissed via container button");
+                        } catch (Exception e) {
+                                // Container selector failed — try JS text search for "continue"
+                                try {
+                                        ((JavascriptExecutor) driver).executeScript(
+                                                        "var els=document.querySelectorAll('button,a');"
+                                                                        + "for(var i=0;i<els.length;i++){"
+                                                                        + "  var t=(els[i].textContent||'').trim().toLowerCase();"
+                                                                        + "  if(t==='continue'||t==='i am 18'||t==='confirm'){els[i].click();break;}"
+                                                                        + "}");
+                                        TestUtils.pause(1000);
+                                        System.out.println("[CartPageTest] Age gate dismissed via JS text");
+                                } catch (Exception e2) {
+                                        System.out.println(
+                                                        "[CartPageTest] Age gate dismiss failed: " + e2.getMessage());
+                                }
                         }
                 }
+                System.out.println("[CartPageTest] After age-gate check, URL: " + driver.getCurrentUrl());
 
-                // Click Add to Cart (selenium-id="AddToCartButton") only if not already in cart.
-                // If the game is already in cart, CheckoutButton is visible instead.
-                try {
-                        List<WebElement> checkoutBtns = driver
-                                        .findElements(By.cssSelector("[selenium-id='CheckoutButton']"));
-                        boolean alreadyInCart = !checkoutBtns.isEmpty()
-                                        && checkoutBtns.get(0).isDisplayed();
-                        if (!alreadyInCart) {
-                                WebElement addBtn = wait.until(
-                                                ExpectedConditions.elementToBeClickable(
-                                                                By.cssSelector("[selenium-id='AddToCartButton']")));
-                                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", addBtn);
-                                TestUtils.pause(2000);
-                        }
-                } catch (Exception ignored) {
-                        // Game may already be in cart or owned - continue
-                }
+                // ── Add to Cart ───────────────────────────────────────────────────────────
+                // GOG SPA buttons use selenium-id attributes:
+                // AddToCartButton — visible when the game is NOT yet in the cart
+                // CheckoutButton — visible after the game is added (shown by user-provided
+                // HTML)
+                System.out.println("[CartPageTest] Waiting for buy button to appear...");
+                boolean added = false;
 
-                // Click "Check out now" on the product page (shown when item is in cart)
-                // or fall back to the header mini-cart "Go to checkout" dropdown button.
+                // 1) Wait up to 12 s for AddToCartButton (normal case — game not in cart)
                 try {
-                        WebElement goToCheckout = new WebDriverWait(driver, Duration.ofSeconds(5))
+                        WebElement addBtn = new WebDriverWait(driver, java.time.Duration.ofSeconds(12))
                                         .until(ExpectedConditions.elementToBeClickable(
-                                                        By.cssSelector("[selenium-id='CheckoutButton'], "
-                                                                        + "[data-cy='menu-cart-checkout-button'], "
-                                                                        + "[hook-test='cartCheckoutNow']")));
-                        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", goToCheckout);
-                        TestUtils.waitForPageLoad(driver);
-                        TestUtils.pause(1000);
-                } catch (Exception ignored) {
-                        // Navigate directly to cart as fallback
-                        driver.get(CART_URL);
-                        TestUtils.waitForPageLoad(driver);
-                        TestUtils.pause(1000);
+                                                        By.cssSelector("[selenium-id='AddToCartButton']")));
+                        TestUtils.scrollIntoView(driver, addBtn);
+                        TestUtils.pause(300);
+                        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", addBtn);
+                        added = true;
+                        System.out.println("[CartPageTest] Clicked AddToCartButton");
+                } catch (Exception e) {
+                        System.out.println("[CartPageTest] AddToCartButton not found: " + e.getMessage());
                 }
+
+                // 2) CheckoutButton already visible — game was already in cart
+                if (!added && !driver.findElements(By.cssSelector("[selenium-id='CheckoutButton']")).isEmpty()) {
+                        added = true;
+                        System.out.println("[CartPageTest] Game already in cart (CheckoutButton visible)");
+                }
+
+                // 3) Last-resort JS text search (catches renamed attributes or page redesigns)
+                if (!added) {
+                        try {
+                                Object result = ((JavascriptExecutor) driver).executeScript(
+                                                "var btns=document.querySelectorAll('button,a');"
+                                                                + "for(var i=0;i<btns.length;i++){"
+                                                                + "  var t=(btns[i].textContent||'').trim().toLowerCase();"
+                                                                + "  if((t.indexOf('add to cart')>=0||t==='buy now')&&btns[i].offsetParent!==null)"
+                                                                + "    {btns[i].click();return 'clicked:'+t;}"
+                                                                + "}"
+                                                                + "return 'not found';");
+                                System.out.println("[CartPageTest] JS text fallback result: " + result);
+                                if (result != null && result.toString().startsWith("clicked"))
+                                        added = true;
+                        } catch (Exception e) {
+                                System.out.println("[CartPageTest] JS text fallback exception: " + e.getMessage());
+                        }
+                }
+
+                if (!added) {
+                        System.out.println("[CartPageTest] WARNING: No add-to-cart button clicked.");
+                }
+
+                TestUtils.pause(1500); // allow cart counter to update
+
+                // ── Navigate to cart ──────────────────────────────────────────────────────
+                System.out.println("[CartPageTest] Navigating directly to cart: " + CART_URL);
+                driver.get(CART_URL);
+                TestUtils.waitForPageLoad(driver);
+                System.out.println("[CartPageTest] Cart URL: " + driver.getCurrentUrl());
         }
 
         @Test(description = "Verify the GOG cart page loads on the gog.com domain")

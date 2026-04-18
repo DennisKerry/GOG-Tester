@@ -96,12 +96,12 @@ public class TestUtils {
 
         driver.findElement(By.cssSelector("button[type='submit']")).click();
 
-        // Wait for redirect back to gog.com
+        // Wait until Chrome leaves the login page (fast – fires on any gog.com redirect)
         try {
-            wait.until(ExpectedConditions.urlContains("gog.com"));
-            Thread.sleep(2000); // allow SPA to settle after login redirect
-        } catch (InterruptedException | TimeoutException ignored) {
-            Thread.currentThread().interrupt();
+            new WebDriverWait(driver, Duration.ofSeconds(15))
+                .until(d -> !d.getCurrentUrl().startsWith("https://login.gog.com/login"));
+        } catch (TimeoutException ignored) {
+            // CAPTCHA or network delay — continue
         }
     }
 
@@ -118,29 +118,24 @@ public class TestUtils {
      * and the OneTrust consent SDK that GOG may embed.
      */
     public static void dismissCookieConsent(WebDriver driver) {
+        // Use JavaScript — avoids translate() XPath on large DOMs that crashes Chrome 147+.
         try {
-            WebElement btn = new WebDriverWait(driver, Duration.ofSeconds(5))
-                    .until(ExpectedConditions.elementToBeClickable(
-                            By.xpath("//button[contains(translate(text(),'ABCDEFGHIJKLMNOPQRSTUVWXYZ',"
-                                    + "'abcdefghijklmnopqrstuvwxyz'),'accept')"
-                                    + " or contains(translate(text(),'ABCDEFGHIJKLMNOPQRSTUVWXYZ',"
-                                    + "'abcdefghijklmnopqrstuvwxyz'),'agree')"
-                                    + " or contains(translate(text(),'ABCDEFGHIJKLMNOPQRSTUVWXYZ',"
-                                    + "'abcdefghijklmnopqrstuvwxyz'),'ok')"
-                                    + " or @id='onetrust-accept-btn-handler'"
-                                    + " or contains(@class,'accept')]")));
-            try {
-                btn.click();
-            } catch (Exception ce) {
-                // Element intercepted by overlay – use JavaScript click as fallback
-                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", btn);
-            }
-        } catch (TimeoutException | NoSuchElementException ignored) {
-            // No consent dialog present â€“ continue
+            ((JavascriptExecutor) driver).executeScript(
+                "var btns=document.querySelectorAll('button[id*=accept],button[class*=accept]');"
+                + "if(!btns.length){btns=document.querySelectorAll('button')}"
+                + "for(var i=0;i<btns.length;i++){"
+                + "  var t=(btns[i].textContent||'').trim().toLowerCase();"
+                + "  if(t==='accept all'||t==='i accept'||t==='accept'||t==='agree'){"
+                + "    btns[i].click();break;"
+                + "  }"
+                + "}"
+            );
+        } catch (Exception ignored) {
+            // No consent dialog — continue
         }
     }
 
-    // -----------------------------------------------------------------------
+        // -----------------------------------------------------------------------
     // General utilities
     // -----------------------------------------------------------------------
 
