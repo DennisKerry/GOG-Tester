@@ -1,236 +1,199 @@
 package com.gog.tests;
 
-import com.gog.base.BaseTest;
+import com.gog.base.E2EBase;
 import com.gog.utils.TestUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import java.io.File;
-import java.time.Duration;
-import java.util.List;
-
 /**
- * GamePageTest - verifies the structure and key elements of a GOG game product
- * page.
+ * GamePageTest - E2E step 4 of 5.
  *
- * The Witcher 3: Wild Hunt is used as the test target. It is a flagship title
- * published by CD PROJEKT RED (GOG's parent company) and is guaranteed to be
- * available on the platform at all times.
- *
- * Automation constraints noted:
- * - An age-gate overlay may be shown on first visit; the test proceeds past it
- * by asserting any visible element, not specifically gated content.
- * - Game prices change during sales; tests assert the price element is present,
- * not its specific value.
- * - Screenshots use lazy loading; a short pause is applied before assertion.
+ * Clicks The Witcher 3: Wild Hunt product tile from the search results page
+ * left by SearchTest. No driver.get() shortcut.
+ * Handles optional age-gate dialogs, then verifies the product page structure.
  */
-public class GamePageTest extends BaseTest {
+public class GamePageTest extends E2EBase {
 
-        private static final String GAME_URL = "https://www.gog.com/en/game/the_witcher_3_wild_hunt";
+    private static final By WITCHER3_TILE =
+            By.cssSelector("a[selenium-id='productTile'][href*='witcher_3_wild_hunt']");
+    private static final By SEARCH_INPUT =
+            By.cssSelector("input[selenium-id='searchComponentInput']");
+    private static final By ADD_TO_CART  =
+            By.cssSelector("[selenium-id='AddToCartButton']");
 
-        /**
-         * Navigate to the game page once and dismiss the mature-content age gate
-         * so subsequent tests don't stall waiting for blocked content.
-         */
-        /**
-         * Dismiss the GOG mature-content age gate if it is present on the current page.
-         */
-        private void dismissAgeGateIfPresent() {
-                // Fast pre-check: if no age-gate element is in the DOM at all, return
-                // immediately
-                // (avoids the 20-second wait.until timeout on every non-gated page load)
-                if (driver.findElements(By.cssSelector("[class*='age-gate']")).isEmpty())
-                        return;
-                try {
-                        WebElement ageBtn = new WebDriverWait(driver, Duration.ofSeconds(5))
-                                        .until(ExpectedConditions.elementToBeClickable(
-                                                        By.cssSelector("button.age-gate__button, button[class*='age-gate']")));
-                        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", ageBtn);
-                        TestUtils.waitForPageLoad(driver);
-                        TestUtils.pause(800);
-                } catch (Exception ignored) {
-                        // Age gate present but could not click - continue
-                }
+    @BeforeClass(alwaysRun = true)
+    public void openWitcher3Page() {
+        System.out.println("\n========================================");
+        System.out.println("[GamePageTest] Step 4 - Navigate to The Witcher 3 page");
+        System.out.println("========================================");
+
+        // If the tile is not visible (filters were active), re-search
+        if (!TestUtils.isElementPresent(driver, WITCHER3_TILE)) {
+            System.out.println("[GamePageTest] Witcher 3 tile not visible - re-searching...");
+            try {
+                WebElement box = wait.until(ExpectedConditions.elementToBeClickable(SEARCH_INPUT));
+                box.click();
+                box.clear();
+                box.sendKeys("witcher");
+                box.sendKeys(Keys.ENTER);
+                TestUtils.pause(3000);
+            } catch (Exception e) {
+                System.out.println("[GamePageTest] Re-search failed: " + e.getMessage());
+            }
         }
 
-        @BeforeClass
-        public void setupGamePage() {
-                driver.get(GAME_URL);
+        TestUtils.pause(1500);
+        System.out.println("[GamePageTest] Clicking The Witcher 3 product tile...");
+        WebElement tile = wait.until(ExpectedConditions.elementToBeClickable(WITCHER3_TILE));
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", tile);
+        TestUtils.waitForPageLoad(driver);
+        TestUtils.pause(2000);
+
+        dismissAgeGate();
+        TestUtils.dismissCookieConsent(driver);
+        TestUtils.pause(2000);
+        System.out.println("[GamePageTest] Game page loaded: " + driver.getTitle());
+    }
+
+    private void dismissAgeGate() {
+        if (!driver.findElements(
+                By.cssSelector("[class*='age-gate'], [class*='age_gate']")).isEmpty()) {
+            System.out.println("[GamePageTest] Age gate detected - dismissing...");
+            try {
+                WebElement btn = new org.openqa.selenium.support.ui.WebDriverWait(
+                        driver, java.time.Duration.ofSeconds(5))
+                        .until(ExpectedConditions.elementToBeClickable(
+                                By.cssSelector("[class*='age-gate'] button,"
+                                        + " [class*='age_gate'] button,"
+                                        + " [class*='age-gate'] a")));
+                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", btn);
                 TestUtils.waitForPageLoad(driver);
-                dismissAgeGateIfPresent();
-                TestUtils.dismissCookieConsent(driver);
-        }
-
-        @Test(description = "Verify the Witcher 3 game page loads on gog.com")
-        public void testGamePageLoads() {
-                driver.get(GAME_URL);
-                TestUtils.waitForPageLoad(driver);
-                dismissAgeGateIfPresent();
-                Assert.assertTrue(
-                                driver.getCurrentUrl().contains("gog.com"),
-                                "Game page must be on gog.com, actual URL: " + driver.getCurrentUrl());
-        }
-
-        @Test(description = "Verify the game title heading is displayed on the product page")
-        public void testGameTitlePresent() {
-                driver.get(GAME_URL);
-                dismissAgeGateIfPresent();
-                TestUtils.pause(800);
-                // Use visibilityOfElementLocated so we wait for the React-rendered h1 to be
-                // fully painted; then read textContent (more reliable than getText() for SPAs).
-                WebElement title = wait.until(
-                                ExpectedConditions.visibilityOfElementLocated(By.cssSelector("h1")));
-                String titleText = title.getAttribute("textContent");
-                if (titleText == null || titleText.trim().isEmpty()) {
-                        titleText = title.getText();
-                }
-                Assert.assertFalse(
-                                titleText.trim().isEmpty(),
-                                "Game title heading must not be empty");
-        }
-
-        @Test(description = "Verify a Buy or Add-to-Cart button is present on the game page")
-        public void testBuyButtonPresent() {
-                driver.get(GAME_URL);
-                dismissAgeGateIfPresent();
-                TestUtils.pause(800);
-                boolean buyPresent = TestUtils.isElementPresent(driver,
-                                By.cssSelector("[class*='buy-btn'], [class*='buyBtn'], "
-                                                + "[class*='buy-button'], [data-qa*='buy']"))
-                                || TestUtils.isElementPresent(driver,
-                                                By.xpath("//*[contains(translate(text(),'ABCDEFGHIJKLMNOPQRSTUVWXYZ',"
-                                                                + "'abcdefghijklmnopqrstuvwxyz'),'add to cart')"
-                                                                + " or contains(translate(text(),'ABCDEFGHIJKLMNOPQRSTUVWXYZ',"
-                                                                + "'abcdefghijklmnopqrstuvwxyz'),'buy now')"
-                                                                + " or contains(translate(@class,'ABCDEFGHIJKLMNOPQRSTUVWXYZ',"
-                                                                + "'abcdefghijklmnopqrstuvwxyz'),'buy')]"));
-                Assert.assertTrue(buyPresent,
-                                "A Buy / Add-to-Cart button must be present on the game page");
-        }
-
-        @Test(description = "Verify the game description or overview section is present")
-        public void testGameDescriptionPresent() {
-                driver.get(GAME_URL);
-                dismissAgeGateIfPresent();
-                TestUtils.pause(800);
-                boolean descPresent = TestUtils.isElementPresent(driver,
-                                By.cssSelector("[class*='description'], [class*='overview'], [class*='about']"))
-                                || TestUtils.isElementPresent(driver,
-                                                By.xpath("//*[contains(@class,'description') or contains(@class,'overview')]"
-                                                                + "[string-length(text()) > 50]"));
-                Assert.assertTrue(descPresent,
-                                "A game description or overview section must be present on the page");
-        }
-
-        @Test(description = "Verify at least one screenshot or media image is present on the game page")
-        public void testGameScreenshotsPresent() {
-                driver.get(GAME_URL);
-                dismissAgeGateIfPresent();
-                TestUtils.pause(1500); // allow lazy-loaded screenshots to render
-                boolean mediaPresent = TestUtils.isElementPresent(driver,
-                                By.cssSelector("[class*='screenshot'], [class*='gallery'], "
-                                                + "[class*='slider'], [class*='media']"))
-                                || TestUtils.isElementPresent(driver,
-                                                By.xpath("//img[contains(@src,'.jpg') or contains(@src,'.png') "
-                                                                + "or contains(@src,'.webp')][not(ancestor::header)]"));
-                Assert.assertTrue(mediaPresent,
-                                "At least one screenshot or media image must be present on the game page");
-        }
-
-        @Test(description = "Verify the system requirements section is present on the game page")
-        public void testSystemRequirementsPresent() {
-                driver.get(GAME_URL);
-                dismissAgeGateIfPresent();
-                TestUtils.pause(800);
-                boolean sysReqPresent = TestUtils.isElementPresent(driver,
-                                By.xpath("//*[contains(translate(text(),'ABCDEFGHIJKLMNOPQRSTUVWXYZ',"
-                                                + "'abcdefghijklmnopqrstuvwxyz'),'system req')"
-                                                + " or contains(translate(text(),'ABCDEFGHIJKLMNOPQRSTUVWXYZ',"
-                                                + "'abcdefghijklmnopqrstuvwxyz'),'minimum')"
-                                                + " or contains(translate(@class,'ABCDEFGHIJKLMNOPQRSTUVWXYZ',"
-                                                + "'abcdefghijklmnopqrstuvwxyz'),'system-req')"
-                                                + " or contains(translate(@class,'ABCDEFGHIJKLMNOPQRSTUVWXYZ',"
-                                                + "'abcdefghijklmnopqrstuvwxyz'),'sysreq')]"));
-                Assert.assertTrue(sysReqPresent,
-                                "System requirements section must be present on the game page");
-        }
-
-        @Test(description = "Verify the game page is served over HTTPS")
-        public void testGamePageIsHttps() {
-                driver.get(GAME_URL);
-                TestUtils.waitForPageLoad(driver);
-                dismissAgeGateIfPresent();
-                Assert.assertTrue(
-                                driver.getCurrentUrl().startsWith("https://"),
-                                "Game page must be served over HTTPS");
-        }
-
-        @Test(description = "Verify a full-page screenshot of the game product page can be captured and is non-empty")
-        public void testGamePageScreenshot() {
-                driver.get(GAME_URL);
-                TestUtils.waitForPageLoad(driver);
-                dismissAgeGateIfPresent();
-                TestUtils.pause(800);
-                File screenshot = TestUtils.takeScreenshot(driver, "game_page_witcher3");
-                Assert.assertNotNull(screenshot, "Screenshot must be captured from the game product page");
-                Assert.assertTrue(screenshot.exists(), "Screenshot file must exist on disk");
-                Assert.assertTrue(screenshot.length() > 0,
-                                "Screenshot file must not be empty â€” expected image data");
-        }
-
-        @Test(description = "Verify the game price or ownership indicator displays non-empty text")
-        public void testGamePriceOrOwnershipPresent() {
-                driver.get(GAME_URL);
-                dismissAgeGateIfPresent();
                 TestUtils.pause(1500);
-                List<WebElement> priceEls = driver.findElements(
-                                By.cssSelector("[class*='price'], [class*='buy__price'], [class*='buyBtn']"));
-                if (!priceEls.isEmpty()) {
-                        WebElement priceEl = priceEls.get(0);
-                        TestUtils.scrollIntoView(driver, priceEl);
-                        String text = priceEl.getAttribute("textContent");
-                        if (text == null || text.trim().isEmpty()) {
-                                text = priceEl.getText();
-                        }
-                        Assert.assertFalse(text == null || text.trim().isEmpty(),
-                                        "Price / ownership element must display non-empty text");
-                } else {
-                        // Price element was not found â€” assert the page is still accessible
-                        Assert.assertTrue(driver.getCurrentUrl().contains("gog.com"),
-                                        "Game page must remain accessible on gog.com even without a visible price element");
-                }
+                System.out.println("[GamePageTest] Age gate dismissed.");
+            } catch (Exception e) {
+                System.out.println("[GamePageTest] Age gate dismiss failed: " + e.getMessage());
+            }
         }
+    }
 
-        @Test(description = "Verify system requirements section can be scrolled into view on the game page")
-        public void testSystemRequirementsScrollable() {
-                driver.get(GAME_URL);
-                dismissAgeGateIfPresent();
-                TestUtils.pause(800);
-                By sysReqSel = By.xpath("//*[contains(translate(text(),'ABCDEFGHIJKLMNOPQRSTUVWXYZ',"
-                                + "'abcdefghijklmnopqrstuvwxyz'),'system req')"
-                                + " or contains(translate(text(),'ABCDEFGHIJKLMNOPQRSTUVWXYZ',"
-                                + "'abcdefghijklmnopqrstuvwxyz'),'minimum')"
-                                + " or contains(translate(@class,'ABCDEFGHIJKLMNOPQRSTUVWXYZ',"
-                                + "'abcdefghijklmnopqrstuvwxyz'),'sysreq')]");
-                List<WebElement> sysReqEls = driver.findElements(sysReqSel);
-                if (!sysReqEls.isEmpty()) {
-                        TestUtils.scrollIntoView(driver, sysReqEls.get(0));
-                        TestUtils.pause(500);
-                        // Verify the scroll completed and the page is still accessible
-                        Assert.assertTrue(driver.getCurrentUrl().contains("gog.com"),
-                                        "Page must remain on gog.com after scrolling to system requirements");
-                } else {
-                        // Element not present â€” scroll to bottom as a fallback scroll assertion
-                        TestUtils.scrollToBottom(driver);
-                        TestUtils.pause(500);
-                        Assert.assertTrue(driver.getCurrentUrl().contains("gog.com"),
-                                        "Page must remain on gog.com after scrolling to the bottom");
-                }
-        }
+    @Test(priority = 1, description = "Verify the browser navigated to The Witcher 3 page on gog.com")
+    public void testOnWitcher3Page() {
+        TestUtils.pause(1500);
+        String url = driver.getCurrentUrl();
+        System.out.println("[GamePageTest] URL: " + url);
+        Assert.assertTrue(url.contains("gog.com"),
+                "Game page must be on gog.com, actual: " + url);
+        Assert.assertTrue(url.toLowerCase().contains("witcher"),
+                "URL must reference 'witcher' after clicking the tile, actual: " + url);
+    }
+
+    @Test(priority = 2, description = "Verify the game page is served over HTTPS")
+    public void testGamePageHttps() {
+        TestUtils.pause(1500);
+        Assert.assertTrue(driver.getCurrentUrl().startsWith("https://"),
+                "Game page must be served over HTTPS, actual: " + driver.getCurrentUrl());
+    }
+
+    @Test(priority = 3, description = "Verify the page <title> contains 'Witcher'")
+    public void testGamePageTitle() {
+        TestUtils.pause(1500);
+        String title = driver.getTitle();
+        System.out.println("[GamePageTest] Title: " + title);
+        Assert.assertTrue(title.toLowerCase().contains("witcher"),
+                "Game page title must contain 'Witcher', actual: " + title);
+    }
+
+    @Test(priority = 4, description = "Verify a H1 game-title heading is visible on the product page")
+    public void testGameTitleHeadingPresent() {
+        TestUtils.pause(1500);
+        WebElement h1 = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("h1")));
+        String text = h1.getAttribute("textContent");
+        if (text == null || text.trim().isEmpty()) text = h1.getText();
+        System.out.println("[GamePageTest] H1: " + text.trim());
+        Assert.assertFalse(text.trim().isEmpty(),
+                "The H1 game-title heading on the product page must not be empty");
+    }
+
+    @Test(priority = 5, description = "Verify the Add to Cart button is present "
+            + "(selenium-id='AddToCartButton')")
+    public void testBuyButtonPresent() {
+        TestUtils.pause(1500);
+        // Scroll to top to make sure the button is reachable
+        ((JavascriptExecutor) driver).executeScript("window.scrollTo(0, 0);");
+        TestUtils.pause(500);
+        boolean present = TestUtils.isElementPresent(driver, ADD_TO_CART)
+                || TestUtils.isElementPresent(driver,
+                        By.cssSelector("button[class*='cart-button']"));
+        Assert.assertTrue(present,
+                "AddToCartButton (selenium-id) or cart-button must be present on the game page");
+    }
+
+    @Test(priority = 6, description = "Verify a price or ownership indicator is visible")
+    public void testPricePresent() {
+        TestUtils.pause(1500);
+        boolean present = TestUtils.isElementPresent(driver,
+                By.cssSelector("[class*='price'], [class*='buy__price']"))
+                || TestUtils.isElementPresent(driver,
+                        By.xpath("//*[contains(text(),'$') or contains(text(),'EUR')"
+                                + " or contains(translate(text(),'FREE','free'),'free')]"
+                                + "[not(ancestor::footer)][not(self::script)]"));
+        Assert.assertTrue(present,
+                "A price or ownership indicator must be visible on the game page");
+    }
+
+    @Test(priority = 7, description = "Verify the game description or overview section is present")
+    public void testGameDescriptionPresent() {
+        TestUtils.pause(1500);
+        boolean present = TestUtils.isElementPresent(driver,
+                By.cssSelector("[class*='description'], [class*='overview'], [class*='about']"))
+                || TestUtils.isElementPresent(driver,
+                        By.xpath("//*[contains(@class,'description') or contains(@class,'summary')]"
+                                + "[string-length(normalize-space(.)) > 50]"));
+        Assert.assertTrue(present,
+                "A game description or overview section must be present on the product page");
+    }
+
+    @Test(priority = 8, description = "Verify at least one screenshot or media image is present")
+    public void testScreenshotsPresent() {
+        TestUtils.pause(1000);
+        System.out.println("[GamePageTest] Scrolling to screenshots section...");
+        ((JavascriptExecutor) driver).executeScript("window.scrollBy(0, 400);");
+        TestUtils.pause(2000);
+        boolean present = TestUtils.isElementPresent(driver,
+                By.cssSelector("[class*='screenshot'], [class*='gallery'],"
+                        + " [class*='slider'], [class*='media-player']"))
+                || TestUtils.isElementPresent(driver,
+                        By.xpath("//img[contains(@src,'.jpg') or contains(@src,'.png')"
+                                + " or contains(@src,'.webp')]"
+                                + "[not(ancestor::header)][not(ancestor::footer)]"));
+        Assert.assertTrue(present,
+                "At least one screenshot, gallery image, or media element must be present");
+        System.out.println("[GamePageTest] Scrolling back to top for Add to Cart...");
+        ((JavascriptExecutor) driver).executeScript("window.scrollTo(0, 0);");
+        TestUtils.pause(1500);
+    }
+
+    @Test(priority = 9, description = "Verify the system requirements section is present")
+    public void testSystemRequirementsPresent() {
+        TestUtils.pause(1000);
+        System.out.println("[GamePageTest] Scrolling to system requirements...");
+        TestUtils.scrollToBottom(driver);
+        TestUtils.pause(2000);
+        boolean present = TestUtils.isElementPresent(driver,
+                By.xpath("//*[contains(translate(text(),"
+                        + "'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),'system req')"
+                        + " or contains(translate(text(),"
+                        + "'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),'minimum')]"));
+        System.out.println("[GamePageTest] Scrolling back to top for CartPageTest...");
+        ((JavascriptExecutor) driver).executeScript("window.scrollTo(0, 0);");
+        TestUtils.pause(1500);
+        Assert.assertTrue(present,
+                "A system requirements section must be present on The Witcher 3 product page");
+    }
 }

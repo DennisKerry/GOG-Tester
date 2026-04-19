@@ -7,11 +7,13 @@
     </listeners>
 
     <!-- ============================================================
-         CEN 4072 – Software Testing  |  Group 15
+         CEN 4072 - Software Testing  |  Group 15
          GOG.com Automated Test Suite
          Members: Robert Benstine, Dennis Kerry, Myles Vinal
          System Under Test: https://www.gog.com
          ============================================================ -->
+
+    <!-- ===== E2E Flow (steps 1-5) - share one browser via E2EBase @BeforeSuite ===== -->
 
     <test name="Home Page Tests">
         <classes>
@@ -25,21 +27,9 @@
         </classes>
     </test>
 
-    <test name="Signup Page Tests">
-        <classes>
-            <class name="com.gog.tests.SignupPageTest"/>
-        </classes>
-    </test>
-
     <test name="Search Tests">
         <classes>
             <class name="com.gog.tests.SearchTest"/>
-        </classes>
-    </test>
-
-    <test name="Navigation Tests">
-        <classes>
-            <class name="com.gog.tests.NavigationTest"/>
         </classes>
     </test>
 
@@ -49,15 +39,29 @@
         </classes>
     </test>
 
-    <test name="Genre Browse Tests">
-        <classes>
-            <class name="com.gog.tests.GenreBrowseTest"/>
-        </classes>
-    </test>
-
     <test name="Cart Page Tests">
         <classes>
             <class name="com.gog.tests.CartPageTest"/>
+        </classes>
+    </test>
+
+    <!-- ===== Standalone Tests - each gets its own browser via BaseTest @BeforeClass ===== -->
+
+    <test name="Signup Page Tests">
+        <classes>
+            <class name="com.gog.tests.SignupPageTest"/>
+        </classes>
+    </test>
+
+    <test name="Navigation Tests">
+        <classes>
+            <class name="com.gog.tests.NavigationTest"/>
+        </classes>
+    </test>
+
+    <test name="Genre Browse Tests">
+        <classes>
+            <class name="com.gog.tests.GenreBrowseTest"/>
         </classes>
     </test>
 
