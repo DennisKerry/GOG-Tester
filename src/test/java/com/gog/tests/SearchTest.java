@@ -117,21 +117,32 @@ public class SearchTest extends E2EBase {
                 Assert.assertTrue(present, "The filters panel must be present on the search-results page");
         }
 
-        @Test(priority = 4, description = "Verify the 'Show only discounted' filter checkbox can be toggled")
+        @Test(priority = 4, description = "Verify 'Show only discounted' filter narrows the catalog and changes visible tile count or URL")
         public void testDiscountedFilterToggle() {
                 TestUtils.pause(800);
                 By cb = By.cssSelector("[selenium-id='filterDiscountedCheckbox'] input,"
                                 + " input[name='discounted']");
                 if (TestUtils.isElementPresent(driver, cb)) {
-                        System.out.println("[SearchTest] Toggling 'Show only discounted' filter...");
+                        // Capture baseline before toggling
+                        int countBefore = driver.findElements(PRODUCT_TILE).size();
+                        String urlBefore = driver.getCurrentUrl();
+                        System.out.println("[SearchTest] Toggling 'Show only discounted' filter"
+                                        + " (baseline tiles: " + countBefore + ")...");
                         WebElement checkbox = driver.findElement(cb);
-                        boolean before = checkbox.isSelected();
+                        boolean stateBefore = checkbox.isSelected();
                         ((JavascriptExecutor) driver).executeScript("arguments[0].click();", checkbox);
-                        TestUtils.pause(1000);
-                        boolean after = driver.findElement(cb).isSelected();
-                        System.out.println("[SearchTest] Filter toggled: " + before + " -> " + after);
-                        Assert.assertNotEquals(after, before,
+                        TestUtils.pause(1500); // allow async results to update
+                        boolean stateAfter = driver.findElement(cb).isSelected();
+                        String urlAfter = driver.getCurrentUrl();
+                        int countAfter = driver.findElements(PRODUCT_TILE).size();
+                        System.out.println("[SearchTest] Filter toggled: " + stateBefore + " -> " + stateAfter
+                                        + " | tiles: " + countBefore + " -> " + countAfter
+                                        + " | URL changed: " + !urlBefore.equals(urlAfter));
+                        Assert.assertNotEquals(stateAfter, stateBefore,
                                         "Clicking 'Show only discounted' must toggle the checkbox state");
+                        Assert.assertTrue(!urlBefore.equals(urlAfter) || countAfter != countBefore,
+                                        "Applying the discount filter must change the URL or visible tile count"
+                                                        + " (before: " + countBefore + ", after: " + countAfter + ")");
                         // Restore to unfiltered state
                         ((JavascriptExecutor) driver).executeScript("arguments[0].click();",
                                         driver.findElement(cb));
@@ -142,23 +153,35 @@ public class SearchTest extends E2EBase {
                 }
         }
 
-        @Test(priority = 5, description = "Verify the Role-playing genre filter checkbox can be toggled")
+        @Test(priority = 5, description = "Verify the RPG genre filter narrows catalog results and reflects in the URL")
         public void testRpgGenreFilter() {
                 TestUtils.pause(800);
                 By cb = By.cssSelector("[selenium-id='filterGenresCheckboxrpg'] input,"
                                 + " input[name='genres-rpg']");
                 if (TestUtils.isElementPresent(driver, cb)) {
-                        System.out.println("[SearchTest] Applying Role-playing genre filter...");
+                        int countBefore = driver.findElements(PRODUCT_TILE).size();
+                        String urlBefore = driver.getCurrentUrl();
+                        System.out.println("[SearchTest] Applying RPG genre filter"
+                                        + " (baseline tiles: " + countBefore + ")...");
                         WebElement checkbox = driver.findElement(cb);
-                        boolean before = checkbox.isSelected();
+                        boolean stateBefore = checkbox.isSelected();
                         ((JavascriptExecutor) driver).executeScript("arguments[0].click();", checkbox);
-                        TestUtils.pause(1000);
-                        boolean after = driver.findElement(cb).isSelected();
-                        System.out.println("[SearchTest] RPG filter toggled: " + before + " -> " + after);
-                        Assert.assertNotEquals(after, before,
-                                        "Clicking the Role-playing genre filter must toggle the checkbox state");
+                        TestUtils.pause(1500);
+                        boolean stateAfter = driver.findElement(cb).isSelected();
+                        String urlAfter = driver.getCurrentUrl();
+                        int countAfter = driver.findElements(PRODUCT_TILE).size();
+                        System.out.println("[SearchTest] RPG filter toggled: " + stateBefore + " -> " + stateAfter
+                                        + " | tiles: " + countBefore + " -> " + countAfter);
+                        Assert.assertNotEquals(stateAfter, stateBefore,
+                                        "Clicking the RPG genre filter must toggle the checkbox state");
+                        Assert.assertTrue(
+                                        urlAfter.contains("rpg") || urlAfter.contains("genres")
+                                                        || !urlBefore.equals(urlAfter)
+                                                        || countAfter != countBefore,
+                                        "Applying the RPG genre filter must update the URL or change visible tile count"
+                                                        + " (before: " + countBefore + ", after: " + countAfter + ")");
                         Assert.assertTrue(TestUtils.isElementPresent(driver, PRODUCT_TILE),
-                                        "Product tiles must remain after applying the RPG genre filter");
+                                        "Product tiles must remain visible after applying the RPG genre filter");
                         // Restore
                         ((JavascriptExecutor) driver).executeScript("arguments[0].click();",
                                         driver.findElement(cb));
@@ -169,11 +192,12 @@ public class SearchTest extends E2EBase {
                 }
         }
 
-        @Test(priority = 6, description = "Verify the sort dropdown can be opened and a sort option selected")
+        @Test(priority = 6, description = "Verify the sort dropdown reorders catalog results and updates the URL with the sort parameter")
         public void testSortDropdown() {
                 TestUtils.pause(800);
                 By sortBy = By.cssSelector("[selenium-id='sort']");
                 if (TestUtils.isElementPresent(driver, sortBy)) {
+                        String urlBefore = driver.getCurrentUrl();
                         System.out.println("[SearchTest] Opening sort dropdown...");
                         WebElement sortEl = driver.findElement(sortBy);
                         ((JavascriptExecutor) driver).executeScript("arguments[0].click();", sortEl);
@@ -185,16 +209,22 @@ public class SearchTest extends E2EBase {
                                                         + " [selenium-id='sortOptionDiscountDesc']"));
                         Assert.assertTrue(optionsVisible,
                                         "Sort options must be visible after opening the sort dropdown");
-                        TestUtils.pause(1000);
+                        TestUtils.pause(800);
 
-                        // Select Title A-Z
+                        // Select Title A-Z and verify the URL reflects the sort parameter
                         By titleAz = By.cssSelector("[selenium-id='sortOptionTitleAsc']");
                         if (TestUtils.isElementPresent(driver, titleAz)) {
                                 System.out.println("[SearchTest] Selecting 'Title (A to Z)' sort...");
                                 ((JavascriptExecutor) driver).executeScript(
                                                 "arguments[0].click();", driver.findElement(titleAz));
-                                TestUtils.pause(1000);
-                                System.out.println("[SearchTest] Applied Title A-Z sort.");
+                                TestUtils.pause(1500);
+                                String urlAfter = driver.getCurrentUrl();
+                                System.out.println("[SearchTest] Applied Title A-Z sort. URL: " + urlAfter);
+                                Assert.assertTrue(
+                                                urlAfter.contains("asc:title") || urlAfter.contains("order=")
+                                                                || !urlBefore.equals(urlAfter),
+                                                "Selecting Title A-Z must update the URL to reflect the sort order,"
+                                                                + " actual: " + urlAfter);
                         }
                         Assert.assertTrue(TestUtils.isElementPresent(driver, PRODUCT_TILE),
                                         "Product tiles must remain visible after applying a sort option");

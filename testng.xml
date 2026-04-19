@@ -45,5 +45,24 @@
         </classes>
     </test>
 
+    <!-- ===== Extended E2E Flow (steps 6-8) - continue journey on the shared browser ===== -->
+
+    <test name="Forum Tests">
+        <classes>
+            <class name="com.gog.tests.ForumTest"/>
+        </classes>
+    </test>
+
+    <test name="Catalog Browse Tests">
+        <classes>
+            <class name="com.gog.tests.CatalogBrowseTest"/>
+        </classes>
+    </test>
+
+    <test name="Galaxy Download Tests">
+        <classes>
+            <class name="com.gog.tests.GalaxyDownloadTest"/>
+        </classes>
+    </test>
 
 </suite>
