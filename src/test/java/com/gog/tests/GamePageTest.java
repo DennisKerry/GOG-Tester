@@ -42,22 +42,22 @@ public class GamePageTest extends E2EBase {
                 box.clear();
                 box.sendKeys("witcher");
                 box.sendKeys(Keys.ENTER);
-                TestUtils.pause(3000);
+                TestUtils.pause(1500);
             } catch (Exception e) {
                 System.out.println("[GamePageTest] Re-search failed: " + e.getMessage());
             }
         }
 
-        TestUtils.pause(1500);
+        TestUtils.pause(800);
         System.out.println("[GamePageTest] Clicking The Witcher 3 product tile...");
         WebElement tile = wait.until(ExpectedConditions.elementToBeClickable(WITCHER3_TILE));
         ((JavascriptExecutor) driver).executeScript("arguments[0].click();", tile);
         TestUtils.waitForPageLoad(driver);
-        TestUtils.pause(2000);
+        TestUtils.pause(1000);
 
         dismissAgeGate();
         TestUtils.dismissCookieConsent(driver);
-        TestUtils.pause(2000);
+        TestUtils.pause(1000);
         System.out.println("[GamePageTest] Game page loaded: " + driver.getTitle());
     }
 
@@ -74,7 +74,7 @@ public class GamePageTest extends E2EBase {
                                         + " [class*='age-gate'] a")));
                 ((JavascriptExecutor) driver).executeScript("arguments[0].click();", btn);
                 TestUtils.waitForPageLoad(driver);
-                TestUtils.pause(1500);
+                TestUtils.pause(800);
                 System.out.println("[GamePageTest] Age gate dismissed.");
             } catch (Exception e) {
                 System.out.println("[GamePageTest] Age gate dismiss failed: " + e.getMessage());
@@ -84,7 +84,7 @@ public class GamePageTest extends E2EBase {
 
     @Test(priority = 1, description = "Verify the browser navigated to The Witcher 3 page on gog.com")
     public void testOnWitcher3Page() {
-        TestUtils.pause(1500);
+        TestUtils.pause(800);
         String url = driver.getCurrentUrl();
         System.out.println("[GamePageTest] URL: " + url);
         Assert.assertTrue(url.contains("gog.com"),
@@ -95,14 +95,14 @@ public class GamePageTest extends E2EBase {
 
     @Test(priority = 2, description = "Verify the game page is served over HTTPS")
     public void testGamePageHttps() {
-        TestUtils.pause(1500);
+        TestUtils.pause(800);
         Assert.assertTrue(driver.getCurrentUrl().startsWith("https://"),
                 "Game page must be served over HTTPS, actual: " + driver.getCurrentUrl());
     }
 
     @Test(priority = 3, description = "Verify the page <title> contains 'Witcher'")
     public void testGamePageTitle() {
-        TestUtils.pause(1500);
+        TestUtils.pause(800);
         String title = driver.getTitle();
         System.out.println("[GamePageTest] Title: " + title);
         Assert.assertTrue(title.toLowerCase().contains("witcher"),
@@ -111,7 +111,7 @@ public class GamePageTest extends E2EBase {
 
     @Test(priority = 4, description = "Verify a H1 game-title heading is visible on the product page")
     public void testGameTitleHeadingPresent() {
-        TestUtils.pause(1500);
+        TestUtils.pause(800);
         WebElement h1 = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("h1")));
         String text = h1.getAttribute("textContent");
         if (text == null || text.trim().isEmpty()) text = h1.getText();
@@ -123,7 +123,7 @@ public class GamePageTest extends E2EBase {
     @Test(priority = 5, description = "Verify the Add to Cart button is present "
             + "(selenium-id='AddToCartButton')")
     public void testBuyButtonPresent() {
-        TestUtils.pause(1500);
+        TestUtils.pause(800);
         // Scroll to top to make sure the button is reachable
         ((JavascriptExecutor) driver).executeScript("window.scrollTo(0, 0);");
         TestUtils.pause(500);
@@ -136,7 +136,7 @@ public class GamePageTest extends E2EBase {
 
     @Test(priority = 6, description = "Verify a price or ownership indicator is visible")
     public void testPricePresent() {
-        TestUtils.pause(1500);
+        TestUtils.pause(800);
         boolean present = TestUtils.isElementPresent(driver,
                 By.cssSelector("[class*='price'], [class*='buy__price']"))
                 || TestUtils.isElementPresent(driver,
@@ -149,7 +149,7 @@ public class GamePageTest extends E2EBase {
 
     @Test(priority = 7, description = "Verify the game description or overview section is present")
     public void testGameDescriptionPresent() {
-        TestUtils.pause(1500);
+        TestUtils.pause(800);
         boolean present = TestUtils.isElementPresent(driver,
                 By.cssSelector("[class*='description'], [class*='overview'], [class*='about']"))
                 || TestUtils.isElementPresent(driver,
@@ -164,7 +164,7 @@ public class GamePageTest extends E2EBase {
         TestUtils.pause(1000);
         System.out.println("[GamePageTest] Scrolling to screenshots section...");
         ((JavascriptExecutor) driver).executeScript("window.scrollBy(0, 400);");
-        TestUtils.pause(2000);
+        TestUtils.pause(1000);
         boolean present = TestUtils.isElementPresent(driver,
                 By.cssSelector("[class*='screenshot'], [class*='gallery'],"
                         + " [class*='slider'], [class*='media-player']"))
@@ -176,7 +176,7 @@ public class GamePageTest extends E2EBase {
                 "At least one screenshot, gallery image, or media element must be present");
         System.out.println("[GamePageTest] Scrolling back to top for Add to Cart...");
         ((JavascriptExecutor) driver).executeScript("window.scrollTo(0, 0);");
-        TestUtils.pause(1500);
+        TestUtils.pause(800);
     }
 
     @Test(priority = 9, description = "Verify the system requirements section is present")
@@ -184,7 +184,7 @@ public class GamePageTest extends E2EBase {
         TestUtils.pause(1000);
         System.out.println("[GamePageTest] Scrolling to system requirements...");
         TestUtils.scrollToBottom(driver);
-        TestUtils.pause(2000);
+        TestUtils.pause(1000);
         boolean present = TestUtils.isElementPresent(driver,
                 By.xpath("//*[contains(translate(text(),"
                         + "'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),'system req')"
@@ -192,7 +192,7 @@ public class GamePageTest extends E2EBase {
                         + "'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),'minimum')]"));
         System.out.println("[GamePageTest] Scrolling back to top for CartPageTest...");
         ((JavascriptExecutor) driver).executeScript("window.scrollTo(0, 0);");
-        TestUtils.pause(1500);
+        TestUtils.pause(800);
         Assert.assertTrue(present,
                 "A system requirements section must be present on The Witcher 3 product page");
     }

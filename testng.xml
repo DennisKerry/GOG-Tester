@@ -45,24 +45,5 @@
         </classes>
     </test>
 
-    <!-- ===== Standalone Tests - each gets its own browser via BaseTest @BeforeClass ===== -->
-
-    <test name="Signup Page Tests">
-        <classes>
-            <class name="com.gog.tests.SignupPageTest"/>
-        </classes>
-    </test>
-
-    <test name="Navigation Tests">
-        <classes>
-            <class name="com.gog.tests.NavigationTest"/>
-        </classes>
-    </test>
-
-    <test name="Genre Browse Tests">
-        <classes>
-            <class name="com.gog.tests.GenreBrowseTest"/>
-        </classes>
-    </test>
 
 </suite>

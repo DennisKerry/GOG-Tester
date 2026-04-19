@@ -26,13 +26,13 @@ public class HomePageTest extends E2EBase {
         driver.get(BASE_URL + "/");
         TestUtils.waitForPageLoad(driver);
         TestUtils.dismissCookieConsent(driver);
-        TestUtils.pause(2000);
+        TestUtils.pause(1000);
         System.out.println("[HomePageTest] Home page loaded: " + driver.getTitle());
     }
 
     @Test(priority = 1, description = "Verify the GOG home-page title contains 'GOG'")
     public void testHomePageTitle() {
-        TestUtils.pause(1500);
+        TestUtils.pause(800);
         String title = driver.getTitle();
         System.out.println("[HomePageTest] Page title: " + title);
         Assert.assertTrue(title.toUpperCase().contains("GOG"),
@@ -41,7 +41,7 @@ public class HomePageTest extends E2EBase {
 
     @Test(priority = 2, description = "Verify the home page is served over HTTPS")
     public void testHomePageIsHttps() {
-        TestUtils.pause(1500);
+        TestUtils.pause(800);
         String url = driver.getCurrentUrl();
         System.out.println("[HomePageTest] URL: " + url);
         Assert.assertTrue(url.startsWith("https://"),
@@ -50,7 +50,7 @@ public class HomePageTest extends E2EBase {
 
     @Test(priority = 3, description = "Verify a header navigation bar is present")
     public void testHeaderPresent() {
-        TestUtils.pause(1500);
+        TestUtils.pause(800);
         boolean present = TestUtils.isElementPresent(driver,
                 By.cssSelector("[hook-test='menuStore'], [class*='menu__'], nav"))
                 || TestUtils.isElementPresent(driver,
@@ -60,7 +60,7 @@ public class HomePageTest extends E2EBase {
 
     @Test(priority = 4, description = "Verify the GOG logo is present in the header")
     public void testLogoPresent() {
-        TestUtils.pause(1500);
+        TestUtils.pause(800);
         boolean present = TestUtils.isElementPresent(driver,
                 By.cssSelector("a.menu__logo, a[class*='logo'], [class*='logo'] a, svg.gog-logo"))
                 || TestUtils.isElementPresent(driver,
@@ -72,7 +72,7 @@ public class HomePageTest extends E2EBase {
     @Test(priority = 5,
           description = "Verify the Sign In button is present (hook-test='menuAnonymousButton')")
     public void testSignInButtonPresent() {
-        TestUtils.pause(1500);
+        TestUtils.pause(800);
         boolean present = TestUtils.isElementPresent(driver,
                 By.cssSelector("a[hook-test='menuAnonymousButton']"))
                 || TestUtils.isElementPresent(driver,
@@ -85,7 +85,7 @@ public class HomePageTest extends E2EBase {
 
     @Test(priority = 6, description = "Verify the Store navigation link is present in the header")
     public void testStoreNavLinkPresent() {
-        TestUtils.pause(1500);
+        TestUtils.pause(800);
         boolean present = TestUtils.isElementPresent(driver,
                 By.cssSelector("a[hook-test='menuStoreButton']"))
                 || TestUtils.isElementPresent(driver,
@@ -96,7 +96,7 @@ public class HomePageTest extends E2EBase {
 
     @Test(priority = 7, description = "Verify at least one game product tile is rendered on the home page")
     public void testGameTilesPresent() {
-        TestUtils.pause(2000);
+        TestUtils.pause(1000);
         boolean present = TestUtils.isElementPresent(driver,
                 By.cssSelector("a[selenium-id='productTile'], [class*='product-tile'], "
                         + "[class*='product_tile'], [class*='productTile']"));
@@ -109,18 +109,18 @@ public class HomePageTest extends E2EBase {
         TestUtils.pause(1000);
         System.out.println("[HomePageTest] Scrolling to page footer...");
         TestUtils.scrollToBottom(driver);
-        TestUtils.pause(2000);
+        TestUtils.pause(1000);
         boolean present = TestUtils.isElementPresent(driver,
                 By.cssSelector("footer, [class*='footer']"));
         Assert.assertTrue(present, "A footer must be visible on the GOG home page");
         System.out.println("[HomePageTest] Scrolling back to top...");
         ((JavascriptExecutor) driver).executeScript("window.scrollTo(0, 0);");
-        TestUtils.pause(1500);
+        TestUtils.pause(800);
     }
 
     @Test(priority = 9, description = "Verify that session cookies are set after visiting GOG.com")
     public void testSessionCookiesSet() {
-        TestUtils.pause(1500);
+        TestUtils.pause(800);
         int count = driver.manage().getCookies().size();
         System.out.println("[HomePageTest] Cookie count: " + count);
         Assert.assertTrue(count > 0,

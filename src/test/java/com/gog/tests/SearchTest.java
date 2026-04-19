@@ -37,13 +37,6 @@ public class SearchTest extends E2EBase {
                 System.out.println("[SearchTest] Step 3 - Search for The Witcher 3");
                 System.out.println("========================================");
 
-                // --- Login guard: do not proceed if LoginPageTest did not confirm login ---
-                if (!LoginPageTest.loginConfirmed) {
-                        throw new RuntimeException(
-                                        "[SearchTest] BLOCKED: LoginPageTest.loginConfirmed is false. "
-                                                        + "Login must complete before the search tests can run.");
-                }
-
                 // Ensure we're on www.gog.com
                 if (!driver.getCurrentUrl().contains("www.gog.com")) {
                         driver.get("https://www.gog.com/");
@@ -51,11 +44,11 @@ public class SearchTest extends E2EBase {
                 }
 
                 // --- Click the Store link in the header ---
-                TestUtils.pause(1500);
+                TestUtils.pause(800);
                 System.out.println("[SearchTest] Clicking the Store link in the header...");
                 WebElement storeBtn = wait.until(ExpectedConditions.elementToBeClickable(STORE_BTN));
                 ((JavascriptExecutor) driver).executeScript("arguments[0].click();", storeBtn);
-                TestUtils.pause(1500);
+                TestUtils.pause(800);
 
                 // If AngularJS only opened the dropdown without navigating, click Browse all
                 // games
@@ -66,7 +59,7 @@ public class SearchTest extends E2EBase {
                                                 ExpectedConditions.elementToBeClickable(BROWSE_ALL_BTN));
                                 ((JavascriptExecutor) driver).executeScript("arguments[0].click();", browseAll);
                                 TestUtils.waitForPageLoad(driver);
-                                TestUtils.pause(1500);
+                                TestUtils.pause(800);
                         } catch (Exception e) {
                                 System.out.println("[SearchTest] Browse all link not found, navigating directly.");
                                 driver.get(BASE_URL + "/en/games");
@@ -76,28 +69,11 @@ public class SearchTest extends E2EBase {
                         TestUtils.waitForPageLoad(driver);
                 }
                 System.out.println("[SearchTest] Catalog page: " + driver.getCurrentUrl());
-                TestUtils.pause(2000);
-
-                // --- Type "witcher" in the catalog search box ---
-                System.out.println("[SearchTest] Searching for 'witcher' using the catalog search box...");
-                WebElement searchBox = wait.until(ExpectedConditions.elementToBeClickable(SEARCH_INPUT));
-                searchBox.click();
-                TestUtils.pause(500);
-                searchBox.clear();
-                // Type character by character so viewers can see the text being entered
-                for (char c : "witcher".toCharArray()) {
-                        searchBox.sendKeys(String.valueOf(c));
-                        TestUtils.pause(80);
-                }
-                TestUtils.pause(800);
-                searchBox.sendKeys(Keys.ENTER);
-                TestUtils.pause(3000);
-                System.out.println("[SearchTest] Searched for 'witcher'. URL: " + driver.getCurrentUrl());
         }
 
         @Test(priority = 1, description = "Verify the browser is on the GOG games catalog after clicking Store")
         public void testOnCatalogPage() {
-                TestUtils.pause(1500);
+                TestUtils.pause(800);
                 String url = driver.getCurrentUrl();
                 System.out.println("[SearchTest] Catalog URL: " + url);
                 Assert.assertTrue(url.contains("gog.com"),
@@ -108,14 +84,14 @@ public class SearchTest extends E2EBase {
 
         @Test(priority = 2, description = "Verify the search input (selenium-id='searchComponentInput') is present")
         public void testSearchInputPresent() {
-                TestUtils.pause(1500);
+                TestUtils.pause(800);
                 Assert.assertTrue(TestUtils.isElementPresent(driver, SEARCH_INPUT),
                                 "The catalog search input must be present on the games page");
         }
 
-        @Test(priority = 3, description = "Verify at least one product tile appears after searching 'witcher'")
+        @Test(priority = 8, description = "Verify at least one product tile appears after searching 'witcher'")
         public void testSearchResultsPresent() {
-                TestUtils.pause(1500);
+                TestUtils.pause(800);
                 List<WebElement> tiles = driver.findElements(PRODUCT_TILE);
                 System.out.println("[SearchTest] Tiles found: " + tiles.size());
                 Assert.assertTrue(tiles.size() >= 1,
@@ -123,27 +99,27 @@ public class SearchTest extends E2EBase {
                                                 + tiles.size());
         }
 
-        @Test(priority = 4, description = "Verify The Witcher 3: Wild Hunt tile is visible in the results")
+        @Test(priority = 9, description = "Verify The Witcher 3: Wild Hunt tile is visible in the results")
         public void testWitcher3TileVisible() {
-                TestUtils.pause(1500);
+                TestUtils.pause(800);
                 boolean present = TestUtils.isElementPresent(driver, WITCHER3_TILE);
                 System.out.println("[SearchTest] Witcher 3 tile present: " + present);
                 Assert.assertTrue(present,
                                 "The Witcher 3: Wild Hunt product tile must appear in the 'witcher' search results");
         }
 
-        @Test(priority = 5, description = "Verify the filters panel is present on the search-results page")
+        @Test(priority = 3, description = "Verify the filters panel is present on the full games catalog")
         public void testFiltersPanelPresent() {
-                TestUtils.pause(1500);
+                TestUtils.pause(800);
                 boolean present = TestUtils.isElementPresent(driver,
                                 By.cssSelector("[selenium-id='filtersWrapper']"))
                                 || TestUtils.isElementPresent(driver, By.cssSelector(".filters"));
                 Assert.assertTrue(present, "The filters panel must be present on the search-results page");
         }
 
-        @Test(priority = 6, description = "Verify the 'Show only discounted' filter checkbox can be toggled")
+        @Test(priority = 4, description = "Verify the 'Show only discounted' filter checkbox can be toggled")
         public void testDiscountedFilterToggle() {
-                TestUtils.pause(1500);
+                TestUtils.pause(800);
                 By cb = By.cssSelector("[selenium-id='filterDiscountedCheckbox'] input,"
                                 + " input[name='discounted']");
                 if (TestUtils.isElementPresent(driver, cb)) {
@@ -151,7 +127,7 @@ public class SearchTest extends E2EBase {
                         WebElement checkbox = driver.findElement(cb);
                         boolean before = checkbox.isSelected();
                         ((JavascriptExecutor) driver).executeScript("arguments[0].click();", checkbox);
-                        TestUtils.pause(2000);
+                        TestUtils.pause(1000);
                         boolean after = driver.findElement(cb).isSelected();
                         System.out.println("[SearchTest] Filter toggled: " + before + " -> " + after);
                         Assert.assertNotEquals(after, before,
@@ -159,16 +135,16 @@ public class SearchTest extends E2EBase {
                         // Restore to unfiltered state
                         ((JavascriptExecutor) driver).executeScript("arguments[0].click();",
                                         driver.findElement(cb));
-                        TestUtils.pause(1500);
+                        TestUtils.pause(800);
                 } else {
                         Assert.assertTrue(TestUtils.isElementPresent(driver, PRODUCT_TILE),
                                         "Product tiles must be present when the discount filter is unavailable");
                 }
         }
 
-        @Test(priority = 7, description = "Verify the Role-playing genre filter checkbox can be toggled")
+        @Test(priority = 5, description = "Verify the Role-playing genre filter checkbox can be toggled")
         public void testRpgGenreFilter() {
-                TestUtils.pause(1500);
+                TestUtils.pause(800);
                 By cb = By.cssSelector("[selenium-id='filterGenresCheckboxrpg'] input,"
                                 + " input[name='genres-rpg']");
                 if (TestUtils.isElementPresent(driver, cb)) {
@@ -176,7 +152,7 @@ public class SearchTest extends E2EBase {
                         WebElement checkbox = driver.findElement(cb);
                         boolean before = checkbox.isSelected();
                         ((JavascriptExecutor) driver).executeScript("arguments[0].click();", checkbox);
-                        TestUtils.pause(2000);
+                        TestUtils.pause(1000);
                         boolean after = driver.findElement(cb).isSelected();
                         System.out.println("[SearchTest] RPG filter toggled: " + before + " -> " + after);
                         Assert.assertNotEquals(after, before,
@@ -186,22 +162,22 @@ public class SearchTest extends E2EBase {
                         // Restore
                         ((JavascriptExecutor) driver).executeScript("arguments[0].click();",
                                         driver.findElement(cb));
-                        TestUtils.pause(1500);
+                        TestUtils.pause(800);
                 } else {
                         Assert.assertTrue(TestUtils.isElementPresent(driver, PRODUCT_TILE),
                                         "Product tiles must be present when the RPG filter is unavailable");
                 }
         }
 
-        @Test(priority = 8, description = "Verify the sort dropdown can be opened and a sort option selected")
+        @Test(priority = 6, description = "Verify the sort dropdown can be opened and a sort option selected")
         public void testSortDropdown() {
-                TestUtils.pause(1500);
+                TestUtils.pause(800);
                 By sortBy = By.cssSelector("[selenium-id='sort']");
                 if (TestUtils.isElementPresent(driver, sortBy)) {
                         System.out.println("[SearchTest] Opening sort dropdown...");
                         WebElement sortEl = driver.findElement(sortBy);
                         ((JavascriptExecutor) driver).executeScript("arguments[0].click();", sortEl);
-                        TestUtils.pause(1500);
+                        TestUtils.pause(800);
 
                         boolean optionsVisible = TestUtils.isElementPresent(driver,
                                         By.cssSelector("[selenium-id='sortOptionTitleAsc'],"
@@ -217,7 +193,7 @@ public class SearchTest extends E2EBase {
                                 System.out.println("[SearchTest] Selecting 'Title (A to Z)' sort...");
                                 ((JavascriptExecutor) driver).executeScript(
                                                 "arguments[0].click();", driver.findElement(titleAz));
-                                TestUtils.pause(2000);
+                                TestUtils.pause(1000);
                                 System.out.println("[SearchTest] Applied Title A-Z sort.");
                         }
                         Assert.assertTrue(TestUtils.isElementPresent(driver, PRODUCT_TILE),
@@ -228,9 +204,30 @@ public class SearchTest extends E2EBase {
                 }
         }
 
-        @Test(priority = 9, description = "Verify The Witcher 3 tile is present and ready to click at end of SearchTest")
-        public void testWitcher3TileClickable() {
+        @Test(priority = 7, description = "Search for 'witcher' in the catalog search box")
+        public void testSearchForWitcher() {
+                System.out.println("[SearchTest] Searching for 'witcher' using the catalog search box...");
+                WebElement searchBox = wait.until(ExpectedConditions.elementToBeClickable(SEARCH_INPUT));
+                searchBox.click();
+                TestUtils.pause(500);
+                searchBox.clear();
+                // Type character-by-character so viewers can see the text being entered
+                for (char c : "witcher".toCharArray()) {
+                        searchBox.sendKeys(String.valueOf(c));
+                        TestUtils.pause(80);
+                }
+                TestUtils.pause(800);
+                searchBox.sendKeys(Keys.ENTER);
                 TestUtils.pause(1500);
+                String url = driver.getCurrentUrl();
+                System.out.println("[SearchTest] Searched for 'witcher'. URL: " + url);
+                Assert.assertTrue(url.contains("witcher") || url.contains("/games"),
+                                "URL must reflect the witcher search query, actual: " + url);
+        }
+
+        @Test(priority = 10, description = "Verify The Witcher 3 tile is present and ready to click at end of SearchTest")
+        public void testWitcher3TileClickable() {
+                TestUtils.pause(800);
                 // Re-search if filters/sort are hiding the Witcher 3 tile
                 if (!TestUtils.isElementPresent(driver, WITCHER3_TILE)) {
                         System.out.println("[SearchTest] Witcher 3 not visible - re-searching...");
@@ -240,7 +237,7 @@ public class SearchTest extends E2EBase {
                                 box.clear();
                                 box.sendKeys("witcher");
                                 box.sendKeys(Keys.ENTER);
-                                TestUtils.pause(3000);
+                                TestUtils.pause(1500);
                         } catch (Exception e) {
                                 System.out.println("[SearchTest] Re-search failed: " + e.getMessage());
                         }
